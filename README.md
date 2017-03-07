@@ -24,11 +24,16 @@ On Mac, there may be an error using urllib. To fix it, you can call
 
 ## Current functionality
 
-- [x] Add (basic)
-- [ ] Remove
-- [ ] Create
-- [ ] Update
-- [ ] Clean
+##### Basic implementation
+
+- Add
+
+##### Not implemented
+
+- Remove
+- Create
+- Update
+- Clean
 
 ### Add
 
