@@ -1,13 +1,15 @@
-import sys, os
+import sys, os, urllib.request
 
 name_gitignore = '.gitignore'
+ext_gitignore = name_gitignore
 file_gitignore = None
 
 def main(argc, argv):
-    check_file_gitignore()
     if argc <= 1:
-        print('no argument provided')
-        sys.exit(0)
+        sys.exit('no argument provided')
+    
+    global file_gitignore
+    file_gitignore = check_file_gitignore()
     if argv[1] == 'add':
         check_args(argc, argv, add)
     elif argv[1] == 'remove':
@@ -17,32 +19,41 @@ def main(argc, argv):
     elif argv[1] == 'clear':
         clear()
     else:
-        print('unknown argument', argv[1])
+        exit_error('unknown argument ' + argv[1])
+    file_gitignore.close()
+
+def exit_error(msg):
+    file_gitignore.close()
+    sys.exit(msg)
 
 def check_file_gitignore():
     for item in os.listdir():
         if os.path.isfile(name_gitignore):
-            file_gitignore = open(name_gitignore, 'a')
-            return
-    print('no', name_gitignore, 'file found')
-    sys.exit(1)
+            return open(name_gitignore, 'a')
+    sys.exit('no %s file found' % name_gitignore)
 
 def check_args(argc, argv, func):
     if argc <= 2:
-        print('expected gitignore name')
+        exit_error('expected gitignore name')
     for name in argv[2:]:
         func(name)
 
 def add(name):
     lower = name.lower()
     if lower not in names:
-        print('unknown gitignore', name)
-    pass
+        exit_error('unknown gitignore ' + name)
+    item = names[lower] + ext_gitignore
+    url = link + item
+    data = urllib.request.urlopen(url).read().decode('utf-8')
+    file_gitignore.write('#gitignore-start:%s\n' % item)
+    file_gitignore.write(data)
+    file_gitignore.write('#gitignore-end:%s\n' % item)
+    print('added', item)
 
 def remove(name):
     lower = name.lower()
     if lower not in names:
-        print('unknown gitignore', name)
+        exit_error('unknown gitignore ' + name)
     pass
 
 def update():
