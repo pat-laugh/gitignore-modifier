@@ -1,6 +1,7 @@
 import sys, os
 
-file_gitignore = '.gitignore'
+name_gitignore = '.gitignore'
+file_gitignore = None
 
 def main(argc, argv):
     check_file_gitignore()
@@ -20,9 +21,10 @@ def main(argc, argv):
 
 def check_file_gitignore():
     for item in os.listdir():
-        if os.path.isfile(file_gitignore):
+        if os.path.isfile(name_gitignore):
+            file_gitignore = open(name_gitignore, 'a')
             return
-    print('no', file_gitignore, 'file found')
+    print('no', name_gitignore, 'file found')
     sys.exit(1)
 
 def check_args(argc, argv, func):
@@ -35,7 +37,6 @@ def add(name):
     lower = name.lower()
     if lower not in names:
         print('unknown gitignore', name)
-        
     pass
 
 def remove(name):
