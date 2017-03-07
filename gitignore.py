@@ -1,6 +1,9 @@
-import sys
+import sys, os
+
+file_gitignore = '.gitignore'
 
 def main(argc, argv):
+    check_file_gitignore()
     if argc <= 1:
         print('no argument provided')
         sys.exit(0)
@@ -8,10 +11,19 @@ def main(argc, argv):
         check_args(argc, argv, add)
     elif argv[1] == 'remove':
         check_args(argc, argv, remove)
+    elif argv[1] == 'update':
+        update()
     elif argv[1] == 'clear':
         clear()
     else:
-        print('unknown argument %s' % argv[1])
+        print('unknown argument', argv[1])
+
+def check_file_gitignore():
+    for item in os.listdir():
+        if os.path.isfile(file_gitignore):
+            return
+    print('no', file_gitignore, 'file found')
+    sys.exit(1)
 
 def check_args(argc, argv, func):
     if argc <= 2:
@@ -20,9 +32,19 @@ def check_args(argc, argv, func):
         func(name)
 
 def add(name):
+    lower = name.lower()
+    if lower not in names:
+        print('unknown gitignore', name)
+        
     pass
 
 def remove(name):
+    lower = name.lower()
+    if lower not in names:
+        print('unknown gitignore', name)
+    pass
+
+def update():
     pass
 
 def clear():
