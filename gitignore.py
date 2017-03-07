@@ -20,15 +20,15 @@ def check_args(argc, argv, func):
         func(name)
 
 def add(name):
-    print(name)
+    pass
 
 def remove(name):
-    print(name)
+    pass
 
 def clear():
     pass
 
-link = r'https://raw.githubusercontent.com/github/gitignore/master/'
+link = 'https://raw.githubusercontent.com/github/gitignore/master/'
 
 names = {
     'actionscript' : 'Actionscript',
@@ -40,6 +40,7 @@ names = {
     'archlinuxpackages' : 'ArchLinuxPackages',
     'autotools' : 'Autotools',
     'c++' : 'C++',
+    'cpp' : 'C++',
     'c' : 'C',
     'cfwheels' : 'CFWheels',
     'cmake' : 'CMake',
