@@ -9,11 +9,16 @@ def main(argc, argv):
         sys.exit('no argument provided')
     
     global file_gitignore
-    file_gitignore = check_file_gitignore()
+        
     if argv[1] == 'add':
-        check_args(argc, argv, add)
+        check_add(argc)
+        [add(name) for name in argv[2:]]
     elif argv[1] == 'remove':
-        check_args(argc, argv, remove)
+        check_remove(argc)
+        [remove(name) for name in argv[2:]]
+    elif argv[1] == 'create':
+        check_create(argc)
+        [add(name) for name in argv[2:]]
     elif argv[1] == 'update':
         update()
     elif argv[1] == 'clear':
@@ -32,11 +37,24 @@ def check_file_gitignore():
             return open(name_gitignore, 'a')
     sys.exit('no %s file found' % name_gitignore)
 
-def check_args(argc, argv, func):
+def check_add(argc):
     if argc <= 2:
         exit_error('expected gitignore name')
-    for name in argv[2:]:
-        func(name)
+    global file_gitignore
+    file_gitignore = open(name_gitignore, 'a')
+
+def check_remove(argc):
+    if argc <= 2:
+        exit_error('expected gitignore name')
+    global file_gitignore
+    file_gitignore = check_file_gitignore()
+
+def check_create(argc):
+    global file_gitignore
+    file_gitignore = open(name_gitignore, 'w')
+    print("%s created" % name_gitignore)
+    if argc == 2:
+        sys.exit(0)
 
 def add(name):
     lower = name.lower()
@@ -57,9 +75,11 @@ def remove(name):
     pass
 
 def update():
+    file_gitignore = check_file_gitignore()
     pass
 
 def clear():
+    file_gitignore = check_file_gitignore()
     pass
 
 link = 'https://raw.githubusercontent.com/github/gitignore/master/'
