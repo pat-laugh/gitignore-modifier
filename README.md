@@ -27,11 +27,11 @@ On Mac, there may be an error using urllib. To fix it, you can call
 ##### Basic implementation
 
 - Add
+- Create
 
 ##### Not implemented
 
 - Remove
-- Create
 - Update
 - Clean
 
@@ -41,6 +41,8 @@ Adds templates to the .gitignore file. It takes any number of parameters corresp
 to the names of templates to add.
 
     add [names]
+
+If the .gitignore file does not exist, creates a new one, else modifies it.
 
 At the moment, only the option to add templates is available. It merely fetches the template
 and appends it at the bottom of the local. It doesn't bother checking for duplicates.
@@ -55,11 +57,15 @@ the file.
 
     remove [names]
 
+If the .gitignore file does not exist, does nothing.
+
 ### Create
 
-Creates a .gitignore file if it is not present, then adds templates to it.
+If the .gitignore file does not exist, creates a new one, else **overwrites** it.
 
-    create [names]
+Then does the equivalent of `add` if there are template names.
+
+    create [names]?
 
 ### Update
 
@@ -67,8 +73,12 @@ Updates the .gitignore file by refetching up-to-date information for each templa
 
     update
 
+If the .gitignore file does not exist, does nothing.
+
 ### Clean
 
 Removes all templates from the .gitignore file.
 
     clean
+
+If the .gitignore file does not exist, does nothing.
