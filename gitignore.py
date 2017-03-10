@@ -75,7 +75,7 @@ def check_file_gitignore(option):
         return True
     return option == Option.ADD
 
-re_start = re.compile(r'\s*#\s*gitignore-start\s*:\s*([!-.0-~]+/)*([!-.0-~]+)\.gitignore.*\n')
+re_start = re.compile('^\\s*#\\s*gitignore-%s:([!-.0-~]+/)*([!-.0-~]+)$' % 'start')
 def parse_file(filename):
     f = open(filename, 'r')
     it = iter(f.readlines())
@@ -87,11 +87,11 @@ def parse_file(filename):
             if m is None:
                 junk_lines.append(line)
             else:
-                parse_gitignore(it, m.group(2).lower());
+                parse_gitignore(it, m.group(2));
         except StopIteration:
             break
 
-re_end = re.compile(r'\s*#\s*gitignore-end\s*:\s*([!-.0-~]+/)*([!-.0-~]+)\.gitignore.*\n')
+re_end = re.compile('^\\s*#\\s*gitignore-%s:([!-.0-~]+/)*([!-.0-~]+)$' % 'end')
 def parse_gitignore(it, name):
     gitignore_lines = []
     while True:
@@ -101,7 +101,8 @@ def parse_gitignore(it, name):
             if m is None or m.group(2) != name:
                 gitignore_lines.append(line)
             else:
-                gitignores.update({name.lower(): lines})
+                gitignores.update({name.lower(): gitignore_lines})
+                return
         except StopIteration:
             sys.exit('the start tag for "%s" is not matched by a corresponding end tag' % name)
 
@@ -110,10 +111,10 @@ def write_file(filename):
     for line in junk_lines:
         f.write(line)
     for name, lines in gitignores.items():
-        f.write('#gitignore-start:%s\n' % names[name])
+        f.write('\n#gitignore-%s:%s\n' % ('start', names[name]))
         for line in lines:
             f.write(line)
-        f.write('#gitignore-end:%s\n' % names[name])
+        f.write('\n#gitignore-%s:%s\n' % ('end', names[name]))
     f.close()
 
 def add(name):
