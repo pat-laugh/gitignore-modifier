@@ -1,9 +1,12 @@
-import sys, os, urllib.request
+import sys, os, urllib.request, re
 from enum import Enum
 
 name_gitignore = '.gitignore'
 ext_gitignore = name_gitignore
 file_gitignore = None
+
+junk_lines = []
+gitignores = dict()
 
 class Option(Enum):
     NONE = 0
@@ -74,9 +77,35 @@ def check_file_gitignore(option):
         return True
     return option == Option.ADD
 
+re_start = re.compile(r'\s*#\s*gitignore-start\s*:\s*([!-.0-~]+/)*([!-.0-~]+)\.gitignore.*\n')
 def parse_file(filename):
     f = open(filename, 'r')
+    it = iter(f.readlines())
     f.close()
+    while True:
+        try:
+            line = next(it)
+            m = re_start.match(line)
+            if m is None:
+                junk_lines.append(line)
+            else:
+                parse_gitignore(it, m.group(2).lower());
+        except StopIteration:
+            break
+
+re_end = re.compile(r'\s*#\s*gitignore-end\s*:\s*([!-.0-~]+/)*([!-.0-~]+)\.gitignore.*\n')
+def parse_gitignore(it, name):
+    gitignore_lines = []
+    while True:
+        try:
+            line = next(it)
+            m = re_end.match(line)
+            if m is None or m.group(2) != name:
+                gitignore_lines.append(line)
+            else:
+                gitignores.update({name.lower(): lines})
+        except StopIteration:
+            sys.exit('the start tag for "%s" is not matched by a corresponding end tag' % name)
 
 def add(name):
     lower = name.lower()
