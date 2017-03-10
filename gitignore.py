@@ -44,7 +44,7 @@ def main(argc, argv):
         update()
     elif option == Option.CLEAR:
         clear()
-#    file_gitignore.close()
+    write_file(name_gitignore)
 
 def get_option(argc, argv):
     if argc <= 1:
@@ -106,6 +106,16 @@ def parse_gitignore(it, name):
                 gitignores.update({name.lower(): lines})
         except StopIteration:
             sys.exit('the start tag for "%s" is not matched by a corresponding end tag' % name)
+
+def write_file(filename):
+    f = open(filename, 'w')
+    for line in junk_lines:
+        f.write(line)
+    for name, lines in gitignores.items():
+        f.write('#gitignore-start:%s\n' % names[name])
+        for line in lines:
+            f.write(line)
+        f.write('#gitignore-end:%s\n' % names[name])
 
 def add(name):
     lower = name.lower()
