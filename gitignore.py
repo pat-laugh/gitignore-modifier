@@ -27,14 +27,12 @@ def main(argc, argv):
         sys.exit('invalid number of arguments for "%s"' % argv[1])
     elif not check_file_gitignore(option):
         sys.exit('no %s file found' % name_gitignore)
-    
-    global file_gitignore
         
     if option == Option.ADD:
         [add(name) for name in argv[2:]]
     elif option == Option.CREATE:
         if argc == 2:
-            file_gitignore = open(name_gitignore, 'w')
+            open(name_gitignore, 'w')
             print("%s created" % name_gitignore)
             sys.exit(0)
         [add(name) for name in argv[2:]]
@@ -73,7 +71,7 @@ def check_file_gitignore(option):
     if option == Option.CREATE:
         return True
     if os.path.isfile(name_gitignore):
-        parse_file(name_gitignore, 'r')
+        parse_file(name_gitignore)
         return True
     return option == Option.ADD
 
@@ -116,6 +114,7 @@ def write_file(filename):
         for line in lines:
             f.write(line)
         f.write('#gitignore-end:%s\n' % names[name])
+    f.close()
 
 def add(name):
     lower = name.lower()
@@ -123,11 +122,11 @@ def add(name):
         exit_error('unknown gitignore ' + name)
     item = names[lower] + ext_gitignore
     url = link + item
-    data = urllib.request.urlopen(url).read().decode('utf-8')
-    file_gitignore.write('#gitignore-start:%s\n' % item)
-    file_gitignore.write(data)
-    file_gitignore.write('#gitignore-end:%s\n' % item)
-    print('added', item)
+    data = urllib.request.urlopen(url).readlines()
+    lines = []
+    for line in data:
+        lines.append(line.decode('utf-8'))
+    gitignores.update({lower: lines})
 
 def remove(name):
     lower = name.lower()
