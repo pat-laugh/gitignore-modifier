@@ -20,9 +20,8 @@ def main(argc, argv):
         sys.exit('no argument provided')
     elif option == Option.UNKNOWN:
         sys.exit('unknown option "%s"' % argv[1])
-    
-
-    
+    elif !valid_argc(argc, option):
+        sys.exit('invalid number of arguments for "%s"' % argv[1])
     
     global file_gitignore
         
@@ -39,8 +38,6 @@ def main(argc, argv):
         update()
     elif argv[1] == 'clear':
         clear()
-    else:
-        exit_error('unknown argument ' + argv[1])
     file_gitignore.close()
 
 def get_option(argc, argv):
@@ -55,6 +52,18 @@ def get_option(argc, argv):
     if argc <= 1:
         return Option.NONE
     return options.get(argv[1].lower(), Option.UNKNOWN)
+
+def valid_argc(argc, option):
+    if option == Option.ADD:
+        return argc > 2
+    elif option == Option.CREATE:
+        return argc >= 2
+    elif option == Option.REMOVE:
+        return argc > 2
+    elif option == Option.UPDATE:
+        return argc == 2
+    else:
+        return argc == 2
 
 def exit_error(msg):
     file_gitignore.close()
