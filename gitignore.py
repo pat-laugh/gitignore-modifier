@@ -31,6 +31,8 @@ def main(argc, argv):
         [add(name) for name in argv[2:]]
     elif option == Option.CREATE:
         if argc == 2:
+            file_gitignore = open(name_gitignore, 'w')
+            print("%s created" % name_gitignore)
             sys.exit(0)
         [add(name) for name in argv[2:]]
     elif option == Option.REMOVE:
@@ -39,7 +41,7 @@ def main(argc, argv):
         update()
     elif option == Option.CLEAR:
         clear()
-    file_gitignore.close()
+#    file_gitignore.close()
 
 def get_option(argc, argv):
     if argc <= 1:
@@ -65,13 +67,16 @@ def valid_argc(argc, option):
         return argc == 2
 
 def check_file_gitignore(option):
-    global file_gitignore
     if option == Option.CREATE:
         return True
     if os.path.isfile(name_gitignore):
-        file_gitignore = open(name_gitignore, 'r')
+        parse_file(name_gitignore, 'r')
         return True
     return option == Option.ADD
+
+def parse_file(filename):
+    f = open(filename, 'r')
+    f.close()
 
 def add(name):
     lower = name.lower()
