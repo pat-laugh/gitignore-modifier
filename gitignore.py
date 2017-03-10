@@ -20,38 +20,37 @@ def main(argc, argv):
         sys.exit('no argument provided')
     elif option == Option.UNKNOWN:
         sys.exit('unknown option "%s"' % argv[1])
-    elif !valid_argc(argc, option):
+    elif not valid_argc(argc, option):
         sys.exit('invalid number of arguments for "%s"' % argv[1])
+    elif not check_file_gitignore(option):
+        sys.exit('no %s file found' % name_gitignore)
     
     global file_gitignore
         
-    if argv[1] == 'add':
-        check_add(argc)
+    if option == Option.ADD:
         [add(name) for name in argv[2:]]
-    elif argv[1] == 'create':
-        check_create(argc)
+    elif option == Option.CREATE:
+        if argc == 2:
+            sys.exit(0)
         [add(name) for name in argv[2:]]
-    elif argv[1] == 'remove':
-        check_remove(argc)
+    elif option == Option.REMOVE:
         [remove(name) for name in argv[2:]]
-    elif argv[1] == 'update':
+    elif option == Option.UPDATE:
         update()
-    elif argv[1] == 'clear':
+    elif option == Option.CLEAR:
         clear()
     file_gitignore.close()
 
 def get_option(argc, argv):
-    options = {
+    if argc <= 1:
+        return Option.NONE
+    return {
         'add': Option.ADD,
         'create': Option.CREATE,
         'remove': Option.REMOVE,
         'update': Option.UPDATE,
         'clear': Option.CLEAR
-    }
-    
-    if argc <= 1:
-        return Option.NONE
-    return options.get(argv[1].lower(), Option.UNKNOWN)
+    }.get(argv[1].lower(), Option.UNKNOWN)
 
 def valid_argc(argc, option):
     if option == Option.ADD:
@@ -65,34 +64,14 @@ def valid_argc(argc, option):
     else:
         return argc == 2
 
-def exit_error(msg):
-    file_gitignore.close()
-    sys.exit(msg)
-
-def check_file_gitignore():
-    for item in os.listdir():
-        if os.path.isfile(name_gitignore):
-            return open(name_gitignore, 'a')
-    sys.exit('no %s file found' % name_gitignore)
-
-def check_add(argc):
-    if argc <= 2:
-        exit_error('expected gitignore name')
+def check_file_gitignore(option):
     global file_gitignore
-    file_gitignore = open(name_gitignore, 'a')
-
-def check_remove(argc):
-    if argc <= 2:
-        exit_error('expected gitignore name')
-    global file_gitignore
-    file_gitignore = check_file_gitignore()
-
-def check_create(argc):
-    global file_gitignore
-    file_gitignore = open(name_gitignore, 'w')
-    print("%s created" % name_gitignore)
-    if argc == 2:
-        sys.exit(0)
+    if option == Option.CREATE:
+        return True
+    if os.path.isfile(name_gitignore):
+        file_gitignore = open(name_gitignore, 'r')
+        return True
+    return option == Option.ADD
 
 def add(name):
     lower = name.lower()
