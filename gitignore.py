@@ -1,24 +1,40 @@
 import sys, os, urllib.request
+from enum import Enum
 
 name_gitignore = '.gitignore'
 ext_gitignore = name_gitignore
 file_gitignore = None
 
+class Option(Enum):
+    NONE = 0
+    UNKNOWN = 1
+    ADD = 2
+    CREATE = 3
+    REMOVE = 4
+    UPDATE = 5
+    CLEAR = 6
+
 def main(argc, argv):
-    if argc <= 1:
+    option = get_option(argc, argv)
+    if option == Option.NONE:
         sys.exit('no argument provided')
+    elif option == Option.UNKNOWN:
+        sys.exit('unknown option "%s"' % argv[1])
+    
+
+    
     
     global file_gitignore
         
     if argv[1] == 'add':
         check_add(argc)
         [add(name) for name in argv[2:]]
-    elif argv[1] == 'remove':
-        check_remove(argc)
-        [remove(name) for name in argv[2:]]
     elif argv[1] == 'create':
         check_create(argc)
         [add(name) for name in argv[2:]]
+    elif argv[1] == 'remove':
+        check_remove(argc)
+        [remove(name) for name in argv[2:]]
     elif argv[1] == 'update':
         update()
     elif argv[1] == 'clear':
@@ -26,6 +42,19 @@ def main(argc, argv):
     else:
         exit_error('unknown argument ' + argv[1])
     file_gitignore.close()
+
+def get_option(argc, argv):
+    options = {
+        'add': Option.ADD,
+        'create': Option.CREATE,
+        'remove': Option.REMOVE,
+        'update': Option.UPDATE,
+        'clear': Option.CLEAR
+    }
+    
+    if argc <= 1:
+        return Option.NONE
+    return options.get(argv[1].lower(), Option.UNKNOWN)
 
 def exit_error(msg):
     file_gitignore.close()
