@@ -89,13 +89,15 @@ re_start = get_re_gitignore('start')
 def parse_file(filename):
     with open(filename, 'r') as f:
         for line in f:
-            if line == '\n':
-                continue
             m = re_start.match(line)
             if m is None:
                 junk_lines.append(line)
             else:
                 parse_gitignore(f, m.group(2))
+    if len(junk_lines) > 0:
+        last_line = junk_lines[-1]
+        if last_line[-1] != '\n':
+            junk_lines[-1] = last_line + os.linesep
 
 re_end = get_re_gitignore('end')
 def parse_gitignore(f, name):
