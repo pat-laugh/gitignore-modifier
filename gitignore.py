@@ -33,7 +33,6 @@ def main(argc, argv):
         [add(name) for name in argv[2:]]
     elif option == Option.CREATE:
         if argc == 2:
-            create_file()
             sys.exit(0)
         [add(name) for name in argv[2:]]
     elif option == Option.REMOVE:
@@ -69,14 +68,14 @@ def valid_argc(argc, option):
 
 def check_file_gitignore(option):
     if option == Option.CREATE:
-        return True
-    if os.path.isfile(name_gitignore):
-        parse_file(name_gitignore)
-        return True
-    if option == Option.ADD:
         create_file()
-        return True
-    return False
+    elif os.path.isfile(name_gitignore):
+        parse_file(name_gitignore)
+    elif option == Option.ADD:
+        create_file()
+    else:
+        return False
+    return True
 
 def create_file():
     open(name_gitignore, 'w')
