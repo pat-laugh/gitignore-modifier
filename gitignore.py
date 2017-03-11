@@ -144,7 +144,17 @@ def get_item_lines(name):
     lines = []
     for line in data:
         lines.append(line.decode('utf-8'))
+    if len(lines) == 1:
+        return check_one_liner(lines[0], name)
     return lines;
+
+re_one_liner = re.compile('^([!-.0-~]+)\.gitignore$')
+def check_one_liner(line, name):
+    m = re_one_liner.match(line)
+    lower = m.group(1).lower()
+    if m is None or lower == name:
+        return [line]
+    return get_item_lines(lower)
 
 def remove(name):
     lower = name.lower()
@@ -178,7 +188,6 @@ names = {
     'archlinuxpackages' : 'ArchLinuxPackages',
     'autotools' : 'Autotools',
     'c++' : 'C++',
-    'cpp' : 'C++',
     'c' : 'C',
     'cfwheels' : 'CFWheels',
     'cmake' : 'CMake',
