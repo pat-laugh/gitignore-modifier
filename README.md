@@ -1,5 +1,7 @@
 # gitignore-modifier
-Application that allows to easily add and remove template gitignore entries
+Application that allows to easily add and remove template gitignore entries.
+
+Written in Python 3.6.
 
 ## Concept
 
@@ -24,13 +26,8 @@ On Mac, there may be an error using urllib. To fix it, you can call
 
 ## Current functionality
 
-##### Basic implementation
-
 - Add
 - Create
-
-##### Not implemented
-
 - Remove
 - Update
 - Clean
@@ -42,18 +39,14 @@ to the names of templates to add.
 
     add [names]
 
-If the .gitignore file does not exist, creates a new one, else modifies it.
+If the .gitignore file does not exist, creates a new one.
 
-At the moment, only the option to add templates is available. It merely fetches the template
-and appends it at the bottom of the local. It doesn't bother checking for duplicates.
-
-You can type: `python gitignore.py add eclipse` to add the .gitignore for the Eclipse IDE.
+Existing templates are updates and new ones are added.
 
 ### Remove
 
 Removes templates from the .gitignore file. It parses the file to find appropriate
-[start and end sections](#additional-info), and removes them from
-the file.
+[start and end sections](#additional-info), and removes them from the file.
 
     remove [names]
 
@@ -75,6 +68,8 @@ Updates the .gitignore file by refetching up-to-date information for each templa
 
 If the .gitignore file does not exist, does nothing.
 
+Equivalent to using `add` with all the templates to update.
+
 ### Clean
 
 Removes all templates from the .gitignore file.
@@ -82,3 +77,20 @@ Removes all templates from the .gitignore file.
     clean
 
 If the .gitignore file does not exist, does nothing.
+
+## Examples
+
+You can type: `python gitignore.py add eclipse java` to add the templates for the
+Eclipse IDE and Java language.
+
+Type `python gitignore.py add linux macos windows` to add related templates.
+
+`add` and create `create` behave nearly the same way. Most of the time it's probably better to
+use `add` than `create`, unless you specifically want to make sure there are only the templates
+that you pass as parameters in the .gitignore file.
+
+Type `python gitignore.py remove eclipse java` to remove the templates previously added.
+
+Type `python gitignore.py update` to update current templates.
+
+Type `python gitignore.py clear` to remove all templates.
