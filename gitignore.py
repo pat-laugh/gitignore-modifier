@@ -125,10 +125,36 @@ def write_file(filename):
         f.write('\n#gitignore-%s:%s\n' % ('end', names[name]))
     f.close()
 
+def close_similarity(s1, s2):
+    l_s1, l_s2 = len(s1), len(s2)
+    if abs(l_s1 - l_s2) > 2:
+        return False
+    if l_s1 < 5 or l_s2 < 5:
+        return s1[0] == s2[0] or s1[~0] == s2[~0]
+    list_s1 = [c for c in s1]
+    list_s2 = [c for c in s2]
+    common_letters = []
+    for c1 in list_s1:
+        if c1 in list_s2:
+            common_letters.append(c1)
+    return len(common_letters) > 4
+
+def error_unknown_gitignore(name):
+    print('Error: unknown gitignore ' + name)
+    possible_names = []
+    for n in names.keys():
+        len_n = len(n)
+        if close_similarity(name, n):
+            possible_names.append(n)
+    if len(possible_names) > 0:
+        print('Did you mean one of these?')
+        for n in possible_names:
+            print('\t' + n)
+
 def add(name):
     lower = name.lower()
     if lower not in names:
-        print('Error: unknown gitignore ' + name)
+        error_unknown_gitignore(name)
         return
     update = lower in gitignores
     gitignores.update({lower: get_item_lines(lower)})
@@ -159,7 +185,7 @@ def check_one_liner(line, name):
 def remove(name):
     lower = name.lower()
     if lower not in names:
-        print('Error: unknown gitignore ' + name)
+        error_unknown_gitignore(name)
         return
     try:
         gitignores.pop(lower)
