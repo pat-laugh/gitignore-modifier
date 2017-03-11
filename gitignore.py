@@ -129,15 +129,19 @@ def close_similarity(s1, s2):
     l_s1, l_s2 = len(s1), len(s2)
     if abs(l_s1 - l_s2) > 2:
         return False
-    if l_s1 < 5 or l_s2 < 5:
+    if l_s1 < 4 or l_s2 < 4:
         return s1[0] == s2[0] or s1[~0] == s2[~0]
-    list_s1 = [c for c in s1]
-    list_s2 = [c for c in s2]
+    list_s1 = set([c for c in s1])
+    list_s2 = set([c for c in s2])
+    l_list_s1 = len(list_s1)
+    if abs(l_list_s1 - len(list_s2)) > 2:
+        return False
     common_letters = []
     for c1 in list_s1:
         if c1 in list_s2:
             common_letters.append(c1)
-    return len(common_letters) > 4
+    l_cl = len(common_letters)
+    return abs(l_cl - l_list_s1) < 2
 
 def error_unknown_gitignore(name):
     print('Error: unknown gitignore ' + name)
