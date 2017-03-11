@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# Copyright 2017 Patrick Laughrea
+# Licensed under the Apache License, Version 2.0
+
 import sys, os, urllib.request, re
 from enum import Enum
 
