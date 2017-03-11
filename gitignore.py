@@ -6,9 +6,6 @@ import sys, os, urllib.request, re
 from enum import Enum
 
 name_gitignore = '.gitignore'
-ext_gitignore = name_gitignore
-file_gitignore = None
-
 junk_lines = []
 gitignores = dict()
 
@@ -83,13 +80,15 @@ def check_file_gitignore(option):
 
 def create_file():
     open(name_gitignore, 'w')
-    print("%s created" % name_gitignore)
+    print('%s created' % name_gitignore)
 
-re_start = re.compile('^\\s*#\\s*gitignore-%s:([!-.0-~]+/)*([!-.0-~]+)$' % 'start')
+def get_re_gitignore(tag):
+    return re.compile('^\\s*#+\\s*gitignore-%s:([!-.0-~]+/)*([!-.0-~]+)$' % tag)
+
+re_start = get_re_gitignore('start')
 def parse_file(filename):
-    f = open(filename, 'r')
-    it = iter(f.readlines())
-    f.close()
+    with open(filename, 'r') as f:
+        it = iter(f.readlines())
     while True:
         try:
             line = next(it)
@@ -103,7 +102,7 @@ def parse_file(filename):
         except StopIteration:
             break
 
-re_end = re.compile('^\\s*#\\s*gitignore-%s:([!-.0-~]+/)*([!-.0-~]+)$' % 'end')
+re_end = get_re_gitignore('end')
 def parse_gitignore(it, name):
     gitignore_lines = []
     while True:
@@ -118,66 +117,49 @@ def parse_gitignore(it, name):
         except StopIteration:
             sys.exit('Error: the start tag for "%s" is not matched by a corresponding end tag' % name)
 
+def get_gitignore_tag(tag, name):
+    return '##gitignore-%s:%s\n' % (tag, name)
+
 def write_file(filename):
     f = open(filename, 'w')
-    for line in junk_lines:
-        f.write(line)
+    f.writelines(junk_lines)
     for name, lines in gitignores.items():
-        f.write('\n#gitignore-%s:%s\n' % ('start', names[name]))
-        for line in lines:
-            f.write(line)
-        f.write('\n#gitignore-%s:%s\n' % ('end', names[name]))
+        f.write(get_gitignore_tag('start', names[name]))
+        f.writelines(lines)
+        f.write(get_gitignore_tag('end', names[name]))
     f.close()
 
 def close_similarity(s1, s2):
-    l_s1, l_s2 = len(s1), len(s2)
-    if abs(l_s1 - l_s2) > 2:
+    if abs(len(s1) - len(s2)) > 2:
         return False
-    if l_s1 < 4 or l_s2 < 4:
-        return s1[0] == s2[0] or s1[~0] == s2[~0]
-    list_s1 = set([c for c in s1])
-    list_s2 = set([c for c in s2])
-    l_list_s1 = len(list_s1)
-    if abs(l_list_s1 - len(list_s2)) > 2:
+    set1, set2 = set(s1), set(s2)
+    len_set1, len_set2 = len(set1), len(set2)
+    if abs(len_set1 - len_set2) > 2:
         return False
-    common_letters = []
-    for c1 in list_s1:
-        if c1 in list_s2:
-            common_letters.append(c1)
-    l_cl = len(common_letters)
-    return abs(l_cl - l_list_s1) < 2
+    common_letters = set1.intersection(set2)
+    len_cl = len(common_letters)
+    return len_set1 - len_cl < 2 and len_set2 - len_cl < 2
 
 def error_unknown_gitignore(name):
     print('Error: unknown gitignore ' + name)
-    possible_names = []
-    for n in names.keys():
-        len_n = len(n)
-        if close_similarity(name, n):
-            possible_names.append(n)
+    possible_names = [n for n in names.keys() if close_similarity(name, n)]
     if len(possible_names) > 0:
         print('Did you mean one of these?')
-        for n in possible_names:
-            print('\t' + n)
+        for n in possible_names: print('\t' + n)
 
 def add(name):
     lower = name.lower()
     if lower not in names:
         error_unknown_gitignore(name)
         return
-    update = lower in gitignores
+    updated = lower in gitignores
     gitignores.update({lower: get_item_lines(lower)})
-    if update:
-        print('%s updated' % name)
-    else:
-        print('%s added' % name)
+    print('%s %s' % (name, 'updated' if updated else 'added'))
 
 def get_item_lines(name):
-    item = names[name] + ext_gitignore
-    url = link + item
+    url = link + names[name] + '.gitignore'
     data = urllib.request.urlopen(url).readlines()
-    lines = []
-    for line in data:
-        lines.append(line.decode('utf-8'))
+    lines = [line.decode('utf-8') for line in data]
     if len(lines) == 1:
         return check_one_liner(lines[0], name)
     return lines;
