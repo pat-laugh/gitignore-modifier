@@ -32,8 +32,7 @@ def main(argc, argv):
         [add(name) for name in argv[2:]]
     elif option == Option.CREATE:
         if argc == 2:
-            open(name_gitignore, 'w')
-            print("%s created" % name_gitignore)
+            create_file()
             sys.exit(0)
         [add(name) for name in argv[2:]]
     elif option == Option.REMOVE:
@@ -73,7 +72,14 @@ def check_file_gitignore(option):
     if os.path.isfile(name_gitignore):
         parse_file(name_gitignore)
         return True
-    return option == Option.ADD
+    if option == Option.ADD:
+        create_file()
+        return True
+    return False
+
+def create_file():
+    open(name_gitignore, 'w')
+    print("%s created" % name_gitignore)
 
 re_start = re.compile('^\\s*#\\s*gitignore-%s:([!-.0-~]+/)*([!-.0-~]+)$' % 'start')
 def parse_file(filename):
@@ -83,6 +89,8 @@ def parse_file(filename):
     while True:
         try:
             line = next(it)
+            if line == '\n':
+                continue;
             m = re_start.match(line)
             if m is None:
                 junk_lines.append(line)
@@ -120,28 +128,41 @@ def write_file(filename):
 def add(name):
     lower = name.lower()
     if lower not in names:
-        exit_error('unknown gitignore ' + name)
-    item = names[lower] + ext_gitignore
+        sys.exit('unknown gitignore ' + name)
+    update = lower in gitignores
+    gitignores.update({lower: get_item_lines(lower)})
+    if update:
+        print('%s updated' % name)
+    else:
+        print('%s added' % name)
+
+def get_item_lines(name):
+    item = names[name] + ext_gitignore
     url = link + item
     data = urllib.request.urlopen(url).readlines()
     lines = []
     for line in data:
         lines.append(line.decode('utf-8'))
-    gitignores.update({lower: lines})
+    return lines;
 
 def remove(name):
     lower = name.lower()
     if lower not in names:
-        exit_error('unknown gitignore ' + name)
-    pass
+        sys.exit('unknown gitignore ' + name)
+    try:
+        gitignores.pop(lower)
+        print('%s removed' % name)
+    except KeyError:
+        print('%s not in file' % name)
 
 def update():
-    file_gitignore = check_file_gitignore()
-    pass
+    for name in gitignores.keys():
+        gitignores.update({name: get_item_lines(name)})
+    print('file updated')
 
 def clear():
-    file_gitignore = check_file_gitignore()
-    pass
+    gitignores.clear()
+    print('file cleared')
 
 link = 'https://raw.githubusercontent.com/github/gitignore/master/'
 
