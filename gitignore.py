@@ -88,34 +88,26 @@ def get_re_gitignore(tag):
 re_start = get_re_gitignore('start')
 def parse_file(filename):
     with open(filename, 'r') as f:
-        it = iter(f.readlines())
-    while True:
-        try:
-            line = next(it)
+        for line in f:
             if line == '\n':
-                continue;
+                continue
             m = re_start.match(line)
             if m is None:
                 junk_lines.append(line)
             else:
-                parse_gitignore(it, m.group(2));
-        except StopIteration:
-            break
+                parse_gitignore(f, m.group(2))
 
 re_end = get_re_gitignore('end')
-def parse_gitignore(it, name):
+def parse_gitignore(f, name):
     gitignore_lines = []
-    while True:
-        try:
-            line = next(it)
-            m = re_end.match(line)
-            if m is None or m.group(2) != name:
-                gitignore_lines.append(line)
-            else:
-                gitignores.update({name.lower(): gitignore_lines})
-                return
-        except StopIteration:
-            sys.exit('Error: the start tag for "%s" is not matched by a corresponding end tag' % name)
+    for line in f:
+        m = re_end.match(line)
+        if m is None or m.group(2) != name:
+            gitignore_lines.append(line)
+        else:
+            gitignores.update({name.lower(): gitignore_lines})
+            return
+    sys.exit('Error: the start tag for "%s" is not matched by a corresponding end tag' % name)
 
 def get_gitignore_tag(tag, name):
     return '##gitignore-%s:%s\n' % (tag, name)
