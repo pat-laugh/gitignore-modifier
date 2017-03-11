@@ -20,13 +20,13 @@ class Option(Enum):
 def main(argc, argv):
     option = get_option(argc, argv)
     if option == Option.NONE:
-        sys.exit('no argument provided')
+        sys.exit('Error: no argument provided')
     elif option == Option.UNKNOWN:
-        sys.exit('unknown option "%s"' % argv[1])
+        sys.exit('Error: unknown option "%s"' % argv[1])
     elif not valid_argc(argc, option):
-        sys.exit('invalid number of arguments for "%s"' % argv[1])
+        sys.exit('Error: invalid number of arguments for "%s"' % argv[1])
     elif not check_file_gitignore(option):
-        sys.exit('no %s file found' % name_gitignore)
+        sys.exit('Error: no %s file found' % name_gitignore)
         
     if option == Option.ADD:
         [add(name) for name in argv[2:]]
@@ -112,7 +112,7 @@ def parse_gitignore(it, name):
                 gitignores.update({name.lower(): gitignore_lines})
                 return
         except StopIteration:
-            sys.exit('the start tag for "%s" is not matched by a corresponding end tag' % name)
+            sys.exit('Error: the start tag for "%s" is not matched by a corresponding end tag' % name)
 
 def write_file(filename):
     f = open(filename, 'w')
@@ -128,7 +128,8 @@ def write_file(filename):
 def add(name):
     lower = name.lower()
     if lower not in names:
-        sys.exit('unknown gitignore ' + name)
+        print('Error: unknown gitignore ' + name)
+        return
     update = lower in gitignores
     gitignores.update({lower: get_item_lines(lower)})
     if update:
@@ -148,7 +149,8 @@ def get_item_lines(name):
 def remove(name):
     lower = name.lower()
     if lower not in names:
-        sys.exit('unknown gitignore ' + name)
+        print('Error: unknown gitignore ' + name)
+        return
     try:
         gitignores.pop(lower)
         print('%s removed' % name)
