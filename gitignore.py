@@ -18,12 +18,22 @@ class Option(Enum):
     UPDATE = 5
     CLEAR = 6
 
+options = {
+    'add': Option.ADD,
+    'create': Option.CREATE,
+    'remove': Option.REMOVE,
+    'update': Option.UPDATE,
+    'clear': Option.CLEAR
+}
+
 def main(argc, argv):
     option = get_option(argc, argv)
     if option == Option.NONE:
         sys.exit('Error: no argument provided')
     elif option == Option.UNKNOWN:
-        sys.exit('Error: unknown option "%s"' % argv[1])
+        print('Error: unknown option "%s"' % argv[1])
+        print_similar_names(argv[1].lower(), options.keys())
+        sys.exit(1)
     elif not valid_argc(argc, option):
         sys.exit('Error: invalid number of arguments for "%s"' % argv[1])
     elif not check_file_gitignore(option):
@@ -46,13 +56,7 @@ def main(argc, argv):
 def get_option(argc, argv):
     if argc <= 1:
         return Option.NONE
-    return {
-        'add': Option.ADD,
-        'create': Option.CREATE,
-        'remove': Option.REMOVE,
-        'update': Option.UPDATE,
-        'clear': Option.CLEAR
-    }.get(argv[1].lower(), Option.UNKNOWN)
+    return options.get(argv[1].lower(), Option.UNKNOWN)
 
 def valid_argc(argc, option):
     if option == Option.ADD:
@@ -133,12 +137,18 @@ def close_similarity(s1, s2):
     len_cl = len(common_letters)
     return len_set1 - len_cl < 2 and len_set2 - len_cl < 2
 
-def error_unknown_gitignore(name):
-    print('Error: unknown gitignore ' + name)
-    possible_names = [n for n in names.keys() if close_similarity(name, n)]
-    if len(possible_names) > 0:
+def get_similar_names(name, list_names):
+    return [n for n in list_names if close_similarity(name, n)]
+
+def print_similar_names(name, list_names):
+    similar_names = get_similar_names(name, list_names)
+    if len(similar_names) > 0:
         print('Did you mean one of these?')
-        for n in possible_names: print('\t' + n)
+        for n in similar_names: print('\t' + n)
+
+def error_unknown_gitignore(name):
+    print('Error: unknown gitignore "%s"' % name)
+    print_similar_names(name, names.keys())
 
 def add(name):
     lower = name.lower()
