@@ -2,7 +2,8 @@
 # Copyright 2017 Patrick Laughrea
 # Licensed under the Apache License, Version 2.0
 
-local_path = None
+local_path = '/Users/Pat-Laugh/Desktop/gi/'
+local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 
 import sys, os, urllib.request, re
@@ -27,7 +28,7 @@ options = {
     'create': Option.CREATE,
     'remove': Option.REMOVE,
     'update': Option.UPDATE,
-    'clear': Option.CLEAR
+    'clear': Option.CLEAR,
     'local': Option.LOCAL
 }
 
@@ -210,17 +211,28 @@ def clear():
     gitignores.clear()
     print('file cleared')
 
+def set_local_path(path):
+    with open(__file__, 'r') as f:
+        lines = f.readlines()
+    if path is None:
+        lines[local_path_line] = 'local_path = None\n'
+    else:
+        lines[local_path_line] = "local_path = '%s'\n" % path
+    with open(__file__, 'w') as f:
+        f.writelines(lines)
+
 def local(argv):
     if argv[2] == 'set':
         if len(argv) != 4:
             sys.exit('Error: local set needs a directory')
-        else:
-            os.chdir(os.path.dirname(sys.argv[0]))
-            with open('gitignore', 'r') as f:
-                lines = f.readlines()
-            lines[4] = 'local_path = \'%s\'' % argv[3]
+        new_local_path = argv[3]
+        if new_local_path[-1] != os.sep:
+            new_local_path += os.sep
+        set_local_path(new_local_path)
+        print('local path set to "%s"' % new_local_path)
     elif argv[2] == 'reset':
-        pass
+        set_local_path(None)
+        print('local path reset')
     else:
         sys.exit('Error: option local only accepts "set" and "reset"')
 
