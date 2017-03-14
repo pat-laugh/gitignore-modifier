@@ -2,6 +2,9 @@
 # Copyright 2017 Patrick Laughrea
 # Licensed under the Apache License, Version 2.0
 
+local_path = None
+online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
+
 import sys, os, urllib.request, re
 from enum import Enum
 
@@ -160,9 +163,14 @@ def add(name):
     print('%s %s' % (name, 'updated' if updated else 'added'))
 
 def get_item_lines(name):
-    url = link + names[name] + '.gitignore'
-    data = urllib.request.urlopen(url).readlines()
-    lines = [line.decode('utf-8') for line in data]
+    if local_path is not None:
+        url = local_path + names[name] + '.gitignore'
+        with open(url, 'r') as f:
+            lines = f.readlines()
+    else:
+        url = online_path + names[name] + '.gitignore'
+        data = urllib.request.urlopen(url).readlines()
+        lines = [line.decode('utf-8') for line in data]
     if len(lines) == 1:
         return check_one_liner(lines[0], name)
     return lines;
@@ -194,8 +202,6 @@ def update():
 def clear():
     gitignores.clear()
     print('file cleared')
-
-link = 'https://raw.githubusercontent.com/github/gitignore/master/'
 
 names = {
     'actionscript' : 'Actionscript',
