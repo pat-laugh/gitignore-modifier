@@ -88,12 +88,14 @@ Local has two suboptions:
 
 What happens is that in the script there is a variable called `local_path`. If it set
 to `None`, then gitignore templates are fetched from the link given above. If it is
-set to anything else, then they're fetched from the specified directory.
+set to anything else, then they're fetched from the specified directory. After execution,
+that variable is changed within the script itself. `set` makes it equal to a string equal
+to the path given and `reset` makes it equal to `None`.
 
-For instance, `local set '/Users/Pat-Laugh/gitignore/'` would make it so when `add c++`
+For instance, `local set /Users/Pat-Laugh/gitignore` would make it so when `add c++`
 is called, the file "/Users/Pat-Laugh/gitignore/C++.gitignore" is fetched. The directory
 provided must be correct. It is only checked when a file is actually fetched. If it is
-incorrect, then an error will be thrown (at the moment is an uncaught exception).
+incorrect, then an error will be thrown (at the moment it is an uncaught error).
 
 ## Gitignore links
 
