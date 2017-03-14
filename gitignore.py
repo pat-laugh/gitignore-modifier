@@ -163,11 +163,14 @@ def error_unknown_gitignore(name):
 
 def add(name):
     lower = name.lower()
-    if lower not in names:
+    if lower in names:
+        update_gitignores(lower)
+    else:
         error_unknown_gitignore(name)
-        return
-    updated = lower in gitignores
-    gitignores.update({lower: get_item_lines(lower)})
+
+def update_gitignores(name):
+    updated = name in gitignores
+    gitignores.update({name: get_item_lines(name)})
     print('%s %s' % (name, 'updated' if updated else 'added'))
 
 def get_item_lines(name):
@@ -204,8 +207,7 @@ def remove(name):
 
 def update():
     for name in gitignores.keys():
-        gitignores.update({name: get_item_lines(name)})
-    print('file updated')
+        update_gitignores(name)
 
 def clear():
     gitignores.clear()
