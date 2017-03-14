@@ -90,8 +90,10 @@ What happens is that in the script there is a variable called `local_path`. If i
 to `None`, then gitignore templates are fetched from the link given above. If it is
 set to anything else, then they're fetched from the specified directory.
 
-For instance, `set '/Users/Pat-Laugh/gitignore/'` would make it so when `add c++` is
-called, the file "/Users/Pat-Laugh/gitignore/C++.gitignore" is fetched.
+For instance, `local set '/Users/Pat-Laugh/gitignore/'` would make it so when `add c++`
+is called, the file "/Users/Pat-Laugh/gitignore/C++.gitignore" is fetched. The directory
+provided must be correct. It is only checked when a file is actually fetched. If it is
+incorrect, then an error will be thrown (at the moment is an uncaught exception).
 
 ## Examples
 
