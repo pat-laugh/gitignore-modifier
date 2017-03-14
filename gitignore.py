@@ -173,7 +173,7 @@ def update_gitignores(name):
     if name in used_gitignores:
         return
     used_gitignores.append(name)
-    updated = name in gitignores
+    updated = name in gitignores.keys()
     gitignores.update({name: get_item_lines(name)})
     print('%s %s' % (name, 'updated' if updated else 'added'))
 
@@ -186,16 +186,19 @@ def get_item_lines(name):
         url = online_path + names[name] + '.gitignore'
         data = urllib.request.urlopen(url).readlines()
         lines = [line.decode('utf-8') for line in data]
+    last_line = lines[-1]
+    if last_line[-1] != '\n':
+        lines[-1] = last_line + os.linesep
     check_gitignore_links(lines, name)
     return lines
 
-re_gitignore_link = re.compile('^([!-.0-~]+/)*([!-.0-~]+)\.gitignore$')
+re_gitignore_link = re.compile('^(#|\s)*([!-.0-~]+/)*([!-.0-~]+)\.gitignore$')
 def check_gitignore_links(lines, linker):
     for line in lines:
         m = re_gitignore_link.match(line)
         if m is None:
             continue
-        name = m.group(2).lower()
+        name = m.group(3).lower()
         if name not in used_gitignores:
             print('%s -> %s' % (linker, name))
             update_gitignores(name)
