@@ -95,6 +95,14 @@ is called, the file "/Users/Pat-Laugh/gitignore/C++.gitignore" is fetched. The d
 provided must be correct. It is only checked when a file is actually fetched. If it is
 incorrect, then an error will be thrown (at the moment is an uncaught exception).
 
+## Gitignore links
+
+Adding the name of a gitignore template within another template will make the parser
+automatically fetch that template. For example, the template for Fortran consists of a
+single line "`C++.gitignore`". This tells the parser to fetch the C++ gitignore. There
+can be multiple links, they can be put on anywhere within the file, but must be the only
+thing in a line. Putting them in a comment (adding '#' before them) is allowed.
+
 ## Examples
 
 You can type: `python gitignore.py add eclipse java` to add the templates for the
