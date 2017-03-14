@@ -31,6 +31,7 @@ On Mac, there may be an error using urllib. To fix it, you can call
 - Remove
 - Update
 - Clean
+- Local
 
 ### Add
 
@@ -77,6 +78,20 @@ Removes all templates from the .gitignore file.
     clean
 
 If the .gitignore file does not exist, does nothing.
+
+### Local
+
+Local has two suboptions:
+ -  Set: must be followed by a path name. It sets a local directory to fetch gitignore
+    templates from.
+ -  Reset: resets the local directory to `None`.
+
+What happens is that in the script there is a variable called `local_path`. If it set
+to `None`, then gitignore templates are fetched from the link given above. If it is
+set to anything else, then they're fetched from the specified directory.
+
+For instance, `set '/Users/Pat-Laugh/gitignore/'` would make it so when `add c++` is
+called, the file "/Users/Pat-Laugh/gitignore/C++.gitignore" is fetched.
 
 ## Examples
 
