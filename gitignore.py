@@ -20,6 +20,7 @@ class Option(Enum):
     REMOVE = 4
     UPDATE = 5
     CLEAR = 6
+    LOCAL = 7
 
 options = {
     'add': Option.ADD,
@@ -27,6 +28,7 @@ options = {
     'remove': Option.REMOVE,
     'update': Option.UPDATE,
     'clear': Option.CLEAR
+    'local': Option.LOCAL
 }
 
 def main(argc, argv):
@@ -39,9 +41,9 @@ def main(argc, argv):
         sys.exit(1)
     elif not valid_argc(argc, option):
         sys.exit('Error: invalid number of arguments for "%s"' % argv[1])
-    elif not check_file_gitignore(option):
+    elif option != Option.LOCAL and not check_file_gitignore(option):
         sys.exit('Error: no %s file found' % name_gitignore)
-        
+    
     if option == Option.ADD:
         [add(name) for name in argv[2:]]
     elif option == Option.CREATE:
@@ -54,6 +56,9 @@ def main(argc, argv):
         update()
     elif option == Option.CLEAR:
         clear()
+    elif option == Option.LOCAL:
+        local(argv)
+        sys.exit(0)
     write_file(name_gitignore)
 
 def get_option(argc, argv):
@@ -70,8 +75,10 @@ def valid_argc(argc, option):
         return argc > 2
     elif option == Option.UPDATE:
         return argc == 2
-    else:
+    elif option == Option.CLEAR:
         return argc == 2
+    else: #option == Option.LOCAL:
+        return argc == 3 or argc == 4
 
 def check_file_gitignore(option):
     if option == Option.CREATE:
@@ -192,7 +199,7 @@ def remove(name):
         gitignores.pop(lower)
         print('%s removed' % name)
     except KeyError:
-        print('%s not in file' % name)
+        print('Error: %s not in file' % name)
 
 def update():
     for name in gitignores.keys():
@@ -202,6 +209,20 @@ def update():
 def clear():
     gitignores.clear()
     print('file cleared')
+
+def local(argv):
+    if argv[2] == 'set':
+        if len(argv) != 4:
+            sys.exit('Error: local set needs a directory')
+        else:
+            os.chdir(os.path.dirname(sys.argv[0]))
+            with open('gitignore', 'r') as f:
+                lines = f.readlines()
+            lines[4] = 'local_path = \'%s\'' % argv[3]
+    elif argv[2] == 'reset':
+        pass
+    else:
+        sys.exit('Error: option local only accepts "set" and "reset"')
 
 names = {
     'actionscript' : 'Actionscript',
