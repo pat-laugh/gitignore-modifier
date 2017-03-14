@@ -239,12 +239,21 @@ def set_local_path(path):
         f.writelines(lines)
 
 def local(argv):
+    global local_path
     if argv[2] == 'set':
         if len(argv) != 4:
             sys.exit('Error: local set needs a directory')
         new_local_path = argv[3]
         if new_local_path[-1] != os.sep:
             new_local_path += os.sep
+        try:
+            os.chdir(new_local_path)
+            local_path = new_local_path
+            set_names_local()
+        except (LookupError) as e:
+            sys.exit('Error: %s' % e)
+        except (TypeError, FileNotFoundError) as e:
+            sys.exit('Error: path is invalid')
         set_local_path(new_local_path)
         print('local path set to "%s"' % new_local_path)
     elif argv[2] == 'reset':
@@ -273,7 +282,7 @@ def add_names_local(subdir):
                     name = m.group(1)
                     lower = m.group(1).lower()
                     if lower in names:
-                        sys.exit('Error: more than one gitignore file called "%s"' % lower)
+                        raise LookupError('more than one gitignore file called "%s"' % lower)
                     if subdir == '.':
                         names.update({lower: name})
                     else: # skip the ./
