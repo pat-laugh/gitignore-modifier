@@ -46,6 +46,9 @@ def main(argc, argv):
     elif option != Option.LOCAL and not check_file_gitignore(option):
         sys.exit('Error: no %s file found' % name_gitignore)
     
+    if local_path is not None:
+        set_names_local()
+    
     if option == Option.ADD:
         [add(name) for name in argv[2:]]
     elif option == Option.CREATE:
@@ -98,7 +101,7 @@ def create_file():
     print('%s created' % name_gitignore)
 
 def get_re_gitignore(tag):
-    return re.compile('^\\s*#+\\s*gitignore-%s:([!-.0-~]+/)*([!-.0-~]+)$' % tag)
+    return re.compile(r'^\s*#+\s*gitignore-%s:([!-.0-~]+/)*([!-.0-~]+)$' % tag)
 
 re_start = get_re_gitignore('start')
 def parse_file(filename):
@@ -192,7 +195,7 @@ def get_item_lines(name):
     check_gitignore_links(lines, name)
     return lines
 
-re_gitignore_link = re.compile('^(#|\s)*([!-.0-~]+/)*([!-.0-~]+)\.gitignore$')
+re_gitignore_link = re.compile(r'^(#|\s)*([!-.0-~]+/)*([!-.0-~]+)\.gitignore$')
 def check_gitignore_links(lines, linker):
     for line in lines:
         m = re_gitignore_link.match(line)
@@ -249,6 +252,37 @@ def local(argv):
         print('local path reset')
     else:
         sys.exit('Error: option local only accepts "set" and "reset"')
+
+
+def set_names_local():
+    curr_dir = os.getcwd()
+    names.clear()
+    os.chdir(local_path)
+    add_names_local('.')
+    os.chdir(curr_dir)
+
+re_gitignore_file = re.compile(r'([^.]+)\.gitignore')
+def add_names_local(subdir):
+    it = os.scandir(subdir)
+    while True:
+        try:
+            dir_entry = next(it)
+            if dir_entry.is_file():
+                m = re_gitignore_file.match(dir_entry.name)
+                if m is not None:
+                    name = m.group(1)
+                    lower = m.group(1).lower()
+                    if lower in names:
+                        sys.exit('Error: more than one gitignore file called "%s"' % lower)
+                    if subdir == '.':
+                        names.update({lower: name})
+                    else: # skip the ./
+                        names.update({lower: subdir[2:] + os.sep + name})
+            elif dir_entry.is_dir():
+                name = subdir + os.sep + dir_entry.name
+                add_names_local(name)
+        except StopIteration:
+            break
 
 names = {
     'actionscript' : 'Actionscript',
