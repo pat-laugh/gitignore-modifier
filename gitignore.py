@@ -11,7 +11,8 @@ from enum import Enum
 
 name_gitignore = '.gitignore'
 junk_lines = []
-gitignores = dict()
+gitignores = {}
+used_gitignores = []
 
 class Option(Enum):
     NONE = 0
@@ -169,6 +170,9 @@ def add(name):
         error_unknown_gitignore(name)
 
 def update_gitignores(name):
+    if name in used_gitignores:
+        return
+    used_gitignores.append(name)
     updated = name in gitignores
     gitignores.update({name: get_item_lines(name)})
     print('%s %s' % (name, 'updated' if updated else 'added'))
@@ -182,20 +186,25 @@ def get_item_lines(name):
         url = online_path + names[name] + '.gitignore'
         data = urllib.request.urlopen(url).readlines()
         lines = [line.decode('utf-8') for line in data]
-    if len(lines) == 1:
-        return check_one_liner(lines[0], name)
-    return lines;
+    check_gitignore_links(lines, name)
+    return lines
 
-re_one_liner = re.compile('^([!-.0-~]+)\.gitignore$')
-def check_one_liner(line, name):
-    m = re_one_liner.match(line)
-    lower = m.group(1).lower()
-    if m is None or lower == name:
-        return [line]
-    return get_item_lines(lower)
+re_gitignore_link = re.compile('^([!-.0-~]+/)*([!-.0-~]+)\.gitignore$')
+def check_gitignore_links(lines, linker):
+    for line in lines:
+        m = re_gitignore_link.match(line)
+        if m is None:
+            continue
+        name = m.group(2).lower()
+        if name not in used_gitignores:
+            print('%s -> %s' % (linker, name))
+            update_gitignores(name)
 
 def remove(name):
     lower = name.lower()
+    if lower in used_gitignores:
+        return
+    used_gitignores.append(lower)
     if lower not in names:
         error_unknown_gitignore(name)
         return
