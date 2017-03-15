@@ -259,6 +259,11 @@ def local(argv):
     elif argv[2] == 'reset':
         set_local_path(None)
         print('local path reset')
+    elif argv[2] == 'show':
+        if local_path is None:
+            print('local path is not set')
+        else:
+            print('local path set to "%s"' % local_path)
     else:
         sys.exit('Error: option local only accepts "set" and "reset"')
 
