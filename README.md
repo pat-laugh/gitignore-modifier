@@ -30,7 +30,7 @@ On Mac, there may be an error using urllib. To fix it, you can call
 - Create
 - Remove
 - Update
-- Clean
+- Clear
 - Local
 
 ### Add
@@ -71,11 +71,11 @@ If the .gitignore file does not exist, does nothing.
 
 Equivalent to using `add` with all the templates to update.
 
-### Clean
+### Clear
 
 Removes all templates from the .gitignore file.
 
-    clean
+    clear
 
 If the .gitignore file does not exist, does nothing.
 
