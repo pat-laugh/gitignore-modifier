@@ -16,8 +16,8 @@ a .gitignore file.
 
 #### Additional info
 
-Each .gitignore template is preceded by a line `#gitignore-start:<dir/><name>.gitignore` and is followed by
-a line `#gitignore-end:<dir/><name>.gitignore`. `<dir/>` is there for patterns within a
+Each .gitignore template is preceded by a line `##gitignore-start:<dir/><name>.gitignore` and is followed by
+a line `##gitignore-end:<dir/><name>.gitignore`. `<dir/>` is there for patterns within a
 subdirectory. For instance, for Eclipse, the `<dir/><name>` part would print `Global/Eclipse`.
 
 ## Errors
@@ -81,10 +81,11 @@ If the .gitignore file does not exist, does nothing.
 
 ### Local
 
-Local has two suboptions:
+Local has the following suboptions:
  -  Set: must be followed by a path name. It sets a local directory to fetch gitignore
     templates from.
  -  Reset: resets the local directory to `None`.
+ -  Show: if set, then shows local path, else prints that it's not set.
 
 What happens is that in the script there is a variable called `local_path`. If it set
 to `None`, then gitignore templates are fetched from the link given above. If it is
@@ -94,8 +95,8 @@ to the path given and `reset` makes it equal to `None`.
 
 For instance, `local set /Users/Pat-Laugh/gitignore` would make it so when `add c++`
 is called, the file "/Users/Pat-Laugh/gitignore/C++.gitignore" is fetched. The directory
-provided must be correct. It is only checked when a file is actually fetched. If it is
-incorrect, then an error will be thrown (at the moment it is an uncaught error).
+provided must be correct and there can't be any conflicting template names, even if
+they are in different directories.
 
 ## Gitignore links
 
@@ -107,17 +108,17 @@ thing in a line. Putting them in a comment (adding '#' before them) is allowed.
 
 ## Examples
 
-You can type: `python gitignore.py add eclipse java` to add the templates for the
+You can type: `gitignore.py add eclipse java` to add the templates for the
 Eclipse IDE and Java language.
 
-Type `python gitignore.py add linux macos windows` to add related templates.
+Type `gitignore.py add linux macos windows` to add related templates.
 
 `add` and create `create` behave nearly the same way. Most of the time it's probably better to
 use `add` than `create`, unless you specifically want to make sure there are only the templates
 that you pass as parameters in the .gitignore file.
 
-Type `python gitignore.py remove eclipse java` to remove the templates previously added.
+Type `gitignore.py remove eclipse java` to remove the templates previously added.
 
-Type `python gitignore.py update` to update current templates.
+Type `gitignore.py update` to update current templates.
 
-Type `python gitignore.py clear` to remove all templates.
+Type `gitignore.py clear` to remove all templates.
