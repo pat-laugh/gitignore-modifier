@@ -43,11 +43,14 @@ def main(argc, argv):
         sys.exit(1)
     elif not valid_argc(argc, option):
         sys.exit('Error: invalid number of arguments for "%s"' % argv[1])
-    elif option != Option.LOCAL and not check_file_gitignore(option):
+    elif option == Option.LOCAL:
+        local(argv)
+        sys.exit(0)
+    elif not check_file_gitignore(option):
         sys.exit('Error: no %s file found' % name_gitignore)
     
     if local_path is not None:
-        set_names_local()
+        set_names_local(local_path)
     
     if option == Option.ADD:
         [add(name) for name in argv[2:]]
@@ -61,9 +64,6 @@ def main(argc, argv):
         update()
     elif option == Option.CLEAR:
         clear()
-    elif option == Option.LOCAL:
-        local(argv)
-        sys.exit(0)
     write_file(name_gitignore)
 
 def get_option(argc, argv):
@@ -239,21 +239,13 @@ def set_local_path(path):
         f.writelines(lines)
 
 def local(argv):
-    global local_path
     if argv[2] == 'set':
         if len(argv) != 4:
             sys.exit('Error: local set needs a directory')
         new_local_path = argv[3]
         if new_local_path[-1] != os.sep:
             new_local_path += os.sep
-        try:
-            os.chdir(new_local_path)
-            local_path = new_local_path
-            set_names_local()
-        except (LookupError) as e:
-            sys.exit('Error: %s' % e)
-        except (TypeError, FileNotFoundError) as e:
-            sys.exit('Error: path is invalid')
+        set_names_local(new_local_path)
         set_local_path(new_local_path)
         print('local path set to "%s"' % new_local_path)
     elif argv[2] == 'reset':
@@ -268,12 +260,17 @@ def local(argv):
         sys.exit('Error: option local only accepts "set" and "reset"')
 
 
-def set_names_local():
-    curr_dir = os.getcwd()
-    names.clear()
-    os.chdir(local_path)
-    add_names_local('.')
-    os.chdir(curr_dir)
+def set_names_local(path):
+    try:
+        curr_dir = os.getcwd()
+        names.clear()
+        os.chdir(path)
+        add_names_local('.')
+        os.chdir(curr_dir)
+    except (LookupError) as e:
+        sys.exit('Error: %s' % e)
+    except (TypeError, FileNotFoundError) as e:
+        sys.exit('Error: path is invalid')
 
 re_gitignore_file = re.compile(r'([^.]+)\.gitignore')
 def add_names_local(subdir):
@@ -287,7 +284,7 @@ def add_names_local(subdir):
                     name = m.group(1)
                     lower = m.group(1).lower()
                     if lower in names:
-                        raise LookupError('more than one gitignore file called "%s"' % lower)
+                        raise LookupError('conflicting "%s" templates in local directory' % lower)
                     if subdir == '.':
                         names.update({lower: name})
                     else: # skip the ./
