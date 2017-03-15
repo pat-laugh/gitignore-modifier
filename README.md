@@ -81,10 +81,11 @@ If the .gitignore file does not exist, does nothing.
 
 ### Local
 
-Local has two suboptions:
+Local has the following suboptions:
  -  Set: must be followed by a path name. It sets a local directory to fetch gitignore
     templates from.
  -  Reset: resets the local directory to `None`.
+ -  Show: if set, then shows local path, else prints that it's not set.
 
 What happens is that in the script there is a variable called `local_path`. If it set
 to `None`, then gitignore templates are fetched from the link given above. If it is
