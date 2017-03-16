@@ -2,7 +2,7 @@
 # Copyright 2017 Patrick Laughrea
 # Licensed under the Apache License, Version 2.0
 
-local_path = None
+local_path = '/Users/Pat-Laugh/Desktop/gitignore/'
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 
@@ -204,6 +204,9 @@ def check_gitignore_links(lines, linker):
         name = m.group(3).lower()
         if name not in used_gitignores:
             print('%s -> %s' % (linker, name))
+            if name not in names:
+                error_unknown_gitignore(name)
+                continue
             update_gitignores(name)
 
 def remove(name):
@@ -270,7 +273,7 @@ def set_names_local(path):
     except (LookupError) as e:
         sys.exit('Error: %s' % e)
     except (TypeError, FileNotFoundError) as e:
-        sys.exit('Error: path is invalid')
+        sys.exit('Error: local path is invalid')
 
 re_gitignore_file = re.compile(r'([^.]+)\.gitignore')
 def add_names_local(subdir):
