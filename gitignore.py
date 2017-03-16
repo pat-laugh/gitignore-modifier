@@ -2,7 +2,7 @@
 # Copyright 2017 Patrick Laughrea
 # Licensed under the Apache License, Version 2.0
 
-local_path = None
+local_path = '/Users/Pat-Laugh/Desktop/gitignore/'
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 
@@ -41,10 +41,8 @@ def main(argc, argv):
         print('Error: unknown option "%s"' % argv[1])
         print_similar_names(argv[1].lower(), options.keys())
         sys.exit(1)
-    elif not valid_argc(argc, option):
-        sys.exit('Error: invalid number of arguments for "%s"' % argv[1])
     elif option == Option.LOCAL:
-        local(argv)
+        option_local(argc, argv)
         sys.exit(0)
     elif not check_file_gitignore(option):
         sys.exit('Error: no %s file found' % name_gitignore)
@@ -53,37 +51,23 @@ def main(argc, argv):
         set_names_local(local_path)
     
     if option == Option.ADD:
-        [add(name) for name in argv[2:]]
+        option_add(argc, argv)
     elif option == Option.CREATE:
         if argc == 2:
             sys.exit(0)
-        [add(name) for name in argv[2:]]
+        option_add(argc, argv)
     elif option == Option.REMOVE:
-        [remove(name) for name in argv[2:]]
+        option_remove(argc, argv)
     elif option == Option.UPDATE:
-        update()
+        option_update(argc, argv)
     elif option == Option.CLEAR:
-        clear()
+        option_clear(argc, argv)
     write_file(name_gitignore)
 
 def get_option(argc, argv):
     if argc <= 1:
         return Option.NONE
     return options.get(argv[1].lower(), Option.UNKNOWN)
-
-def valid_argc(argc, option):
-    if option == Option.ADD:
-        return argc > 2
-    elif option == Option.CREATE:
-        return argc >= 2
-    elif option == Option.REMOVE:
-        return argc > 2
-    elif option == Option.UPDATE:
-        return argc == 2
-    elif option == Option.CLEAR:
-        return argc == 2
-    else: #option == Option.LOCAL:
-        return argc == 3 or argc == 4
 
 def check_file_gitignore(option):
     if option == Option.CREATE:
@@ -99,6 +83,21 @@ def check_file_gitignore(option):
 def create_file():
     open(name_gitignore, 'w')
     print('%s created' % name_gitignore)
+
+def exit_invalid_arguments(option_name):
+    sys.exit('Error: invalid arguments for "%s"' % option_name)
+
+def option_add(argc, argv):
+    if argc < 3:
+        exit_invalid_arguments(argv[1])
+    for name in argv[2:]:
+        add(name)
+
+def option_remove(argc, argv):
+    if argc < 3:
+        exit_invalid_arguments(argv[1])
+    for name in argv[2:]:
+        remove(name)
 
 def get_re_gitignore(tag):
     return re.compile(r'^\s*#+\s*gitignore-%s:([!-.0-~]+/)*([!-.0-~]+)$' % tag)
@@ -224,13 +223,41 @@ def remove(name):
     except KeyError:
         print('Error: %s not in file' % name)
 
-def update():
+def option_update(argc, argv):
+    if argc != 2:
+        exit_invalid_arguments(argv[1])
     for name in gitignores.keys():
         update_gitignores(name)
 
-def clear():
+def option_clear(argc, argv):
+    if argc != 2:
+        exit_invalid_arguments(argv[1])
     gitignores.clear()
     print('file cleared')
+
+def option_local(argc, argv):
+    if argc == 4:
+        if argv[2] != 'set':
+            exit_invalid_arguments(argv[1])
+        new_local_path = argv[3]
+        if new_local_path[-1] != os.sep:
+            new_local_path += os.sep
+        set_names_local(new_local_path)
+        set_local_path(new_local_path)
+        print('local path set to "%s"' % new_local_path)
+    elif argc == 3:
+        if argv[2] == 'reset':
+            set_local_path(None)
+            print('local path reset')
+        elif argv[2] == 'show':
+            if local_path is None:
+                print('local path is not set')
+            else:
+                print('local path set to "%s"' % local_path)
+        else:
+            exit_invalid_arguments(argv[1])
+    else:
+        exit_invalid_arguments(argv[1])
 
 def set_local_path(path):
     with open(__file__, 'r') as f:
@@ -241,28 +268,6 @@ def set_local_path(path):
         lines[local_path_line] = "local_path = '%s'\n" % path
     with open(__file__, 'w') as f:
         f.writelines(lines)
-
-def local(argv):
-    if argv[2] == 'set':
-        if len(argv) != 4:
-            sys.exit('Error: local set needs a directory')
-        new_local_path = argv[3]
-        if new_local_path[-1] != os.sep:
-            new_local_path += os.sep
-        set_names_local(new_local_path)
-        set_local_path(new_local_path)
-        print('local path set to "%s"' % new_local_path)
-    elif argv[2] == 'reset':
-        set_local_path(None)
-        print('local path reset')
-    elif argv[2] == 'show':
-        if local_path is None:
-            print('local path is not set')
-        else:
-            print('local path set to "%s"' % local_path)
-    else:
-        sys.exit('Error: option local only accepts "set" and "reset"')
-
 
 def set_names_local(path):
     try:
