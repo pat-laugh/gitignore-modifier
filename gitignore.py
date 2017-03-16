@@ -2,7 +2,7 @@
 # Copyright 2017 Patrick Laughrea
 # Licensed under the Apache License, Version 2.0
 
-local_path = '/Users/Pat-Laugh/Desktop/gitignore/'
+local_path = None
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 
@@ -156,9 +156,12 @@ def get_similar_names(name, list_names):
 
 def print_similar_names(name, list_names):
     similar_names = get_similar_names(name, list_names)
-    if len(similar_names) > 0:
+    if len(similar_names) > 1:
         print('Did you mean one of these?')
         for n in similar_names: print('\t' + n)
+    elif len(similar_names) == 1:
+        print('Did you mean this?')
+        print('\t' + similar_names[0])
 
 def error_unknown_gitignore(name):
     print('Error: unknown gitignore "%s"' % name)
@@ -235,29 +238,64 @@ def option_clear(argc, argv):
     gitignores.clear()
     print('file cleared')
 
+
+
+class OptionLocal(Enum):
+    NONE = 0
+    UNKNOWN = 1
+    SET = 2
+    RESET = 3
+    SHOW = 4
+
+options_local = {
+    'set': OptionLocal.SET,
+    'reset': OptionLocal.RESET,
+    'show': OptionLocal.SHOW
+}
+
 def option_local(argc, argv):
-    if argc == 4:
-        if argv[2] != 'set':
-            exit_invalid_arguments(argv[1])
-        new_local_path = argv[3]
-        if new_local_path[-1] != os.sep:
-            new_local_path += os.sep
-        set_names_local(new_local_path)
-        set_local_path(new_local_path)
-        print('local path set to "%s"' % new_local_path)
-    elif argc == 3:
-        if argv[2] == 'reset':
-            set_local_path(None)
-            print('local path reset')
-        elif argv[2] == 'show':
-            if local_path is None:
-                print('local path is not set')
-            else:
-                print('local path set to "%s"' % local_path)
-        else:
-            exit_invalid_arguments(argv[1])
+    option = get_option_local(argc, argv)
+    if option == OptionLocal.NONE:
+        sys.exit('Error: no %s suboption provided' % argv[1])
+    elif option == OptionLocal.UNKNOWN:
+        print('Error: unknown %s suboption "%s"' % (argv[1], argv[2]))
+        print_similar_names(argv[2].lower(), options_local.keys())
+        sys.exit(1)
+    elif option == OptionLocal.SET:
+        option_local_set(argc, argv)
+    elif option == OptionLocal.RESET:
+        option_local_reset(argc, argv)
+    elif option == OptionLocal.SHOW:
+        option_local_show(argc, argv)
+
+def get_option_local(argc, argv):
+    if argc <= 2:
+        return OptionLocal.NONE
+    return options_local.get(argv[2].lower(), OptionLocal.UNKNOWN)
+
+def option_local_set(argc, argv):
+    if argc != 4:
+        exit_invalid_arguments('%s %s' % (argv[1], argv[2]))
+    new_local_path = argv[3]
+    if new_local_path[-1] != os.sep:
+        new_local_path += os.sep
+    set_names_local(new_local_path)
+    set_local_path(new_local_path)
+    print('local path set to "%s"' % new_local_path)
+
+def option_local_reset(argc, argv):
+    if argc != 3:
+        exit_invalid_arguments('%s %s' % (argv[1], argv[2]))
+    set_local_path(None)
+    print('local path reset')
+
+def option_local_show(argc, argv):
+    if argc != 3:
+        exit_invalid_arguments('%s %s' % (argv[1], argv[2]))
+    if local_path is None:
+        print('local path is not set')
     else:
-        exit_invalid_arguments(argv[1])
+        print('local path set to "%s"' % local_path)
 
 def set_local_path(path):
     with open(__file__, 'r') as f:
