@@ -192,11 +192,11 @@ def get_item_lines(name):
     last_line = lines[-1]
     if last_line[-1] != '\n':
         lines[-1] = last_line + os.linesep
-    check_gitignore_links(lines, name)
+    check_gitignore_links(lines, name, update_gitignores)
     return lines
 
 re_gitignore_link = re.compile(r'^(#|\s)*([!-.0-~]+/)*([!-.0-~]+)\.gitignore$')
-def check_gitignore_links(lines, linker):
+def check_gitignore_links(lines, linker, func):
     for line in lines:
         m = re_gitignore_link.match(line)
         if m is None:
@@ -207,7 +207,7 @@ def check_gitignore_links(lines, linker):
             if name not in names:
                 error_unknown_gitignore(name)
                 continue
-            update_gitignores(name)
+            func(name)
 
 def remove(name):
     lower = name.lower()
@@ -218,6 +218,7 @@ def remove(name):
         error_unknown_gitignore(name)
         return
     try:
+        check_gitignore_links(gitignores[lower], lower, remove)
         gitignores.pop(lower)
         print('%s removed' % name)
     except KeyError:
