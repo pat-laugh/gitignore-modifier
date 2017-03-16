@@ -44,11 +44,12 @@ def main(argc, argv):
     elif option == Option.LOCAL:
         option_local(argc, argv)
         sys.exit(0)
-    elif not check_file_gitignore(option):
-        sys.exit('Error: no %s file found' % name_gitignore)
     
     if local_path is not None:
         set_names_local(local_path)
+    
+    if not check_file_gitignore(option):
+        sys.exit('Error: no %s file found' % name_gitignore)
     
     if option == Option.ADD:
         option_add(argc, argv)
