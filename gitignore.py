@@ -104,13 +104,22 @@ def get_re_gitignore(tag):
 
 re_start = get_re_gitignore('start')
 def parse_file(filename):
+    errors = []
     with open(filename, 'r') as f:
         for line in f:
             m = re_start.match(line)
             if m is None:
                 junk_lines.append(line)
             else:
-                parse_gitignore(f, m.group(2))
+                name = m.group(2)
+                parse_gitignore(f, name)
+                if name.lower() not in names:
+                    errors.append(name)
+    if len(errors) > 0:
+        print('\tInvalid %s file:' % name_gitignore)
+        for n in errors:
+            error_unknown_gitignore(n)
+        sys.exit(1)
     if len(junk_lines) > 0:
         last_line = junk_lines[-1]
         if last_line[-1] != '\n':
@@ -126,6 +135,7 @@ def parse_gitignore(f, name):
         else:
             gitignores.update({name.lower(): gitignore_lines})
             return
+    print('\tInvalid %s file:' % name_gitignore)
     sys.exit('Error: the start tag for "%s" is not matched by a corresponding end tag' % name)
 
 def get_gitignore_tag(tag, name):
