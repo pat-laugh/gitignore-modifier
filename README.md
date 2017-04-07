@@ -32,6 +32,7 @@ On Mac, there may be an error using urllib. To fix it, you can call
 - Update
 - Clear
 - Local
+- -f --file
 
 ### Add
 
@@ -97,6 +98,13 @@ For instance, `local set /Users/Pat-Laugh/gitignore` would make it so when `add 
 is called, the file "/Users/Pat-Laugh/gitignore/C++.gitignore" is fetched. The directory
 provided must be correct and there can't be any conflicting template names, even if
 they are in different directories.
+
+### -f --file
+
+This modifier allows to set which file to manipulate. By default, the file is the
+.gitignore present in the acive directory, but this modifier allows to specify a file
+explicitly. The modifier can appear anywhere within the command arguments, but it must
+be immediately followed by a filename.
 
 ## Gitignore links
 
