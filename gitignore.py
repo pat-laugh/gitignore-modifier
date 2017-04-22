@@ -2,7 +2,7 @@
 # Copyright 2017 Patrick Laughrea
 # Licensed under the Apache License, Version 2.0
 
-local_path = '/Users/Pat-Laugh/Desktop/gitignore/'
+local_path = None
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 
@@ -23,6 +23,7 @@ class Option(Enum):
 	UPDATE = 5
 	CLEAR = 6
 	LOCAL = 7
+	LIST = 8
 
 options = {
 	'add': Option.ADD,
@@ -30,7 +31,8 @@ options = {
 	'remove': Option.REMOVE,
 	'update': Option.UPDATE,
 	'clear': Option.CLEAR,
-	'local': Option.LOCAL
+	'local': Option.LOCAL,
+	'list': Option.LIST,
 }
 
 def main(argc, argv):
@@ -64,6 +66,9 @@ def main(argc, argv):
 		option_update(argc, argv)
 	elif option == Option.CLEAR:
 		option_clear(argc, argv)
+	elif option == Option.LIST:
+		option_list(argc, argv)
+		sys.exit(0)
 	write_file(name_gitignore)
 
 def check_modifiers(argv):
@@ -265,6 +270,12 @@ def option_clear(argc, argv):
 	gitignores.clear()
 	print('file cleared')
 
+def option_list(argc, argv):
+	if argc != 2:
+		exit_invalid_arguments(argv[1])
+	l = list(gitignores.keys())
+	l.sort()
+	print(l)
 
 
 class OptionLocal(Enum):
