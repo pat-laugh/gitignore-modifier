@@ -32,6 +32,7 @@ On Mac, there may be an error using urllib. To fix it, you can call
 - Update
 - Clear
 - Local
+- List
 - -f --file
 
 ### Add
@@ -99,6 +100,14 @@ is called, the file "/Users/Pat-Laugh/gitignore/C++.gitignore" is fetched. The d
 provided must be correct and there can't be any conflicting template names, even if
 they are in different directories.
 
+### List
+
+Prints a sorted list of all templates in the .gitignore file.
+
+    list
+
+If the .gitignore file does not exist, does nothing.
+
 ### -f --file
 
 This modifier allows to set which file to manipulate. By default, the file is the
@@ -130,3 +139,5 @@ Type `gitignore.py remove eclipse java` to remove the templates previously added
 Type `gitignore.py update` to update current templates.
 
 Type `gitignore.py clear` to remove all templates.
+
+Type `gitignore.py list` to list all templates.
