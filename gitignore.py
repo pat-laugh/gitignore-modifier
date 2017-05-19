@@ -565,4 +565,7 @@ names = {
 }
 
 if __name__ == '__main__':
-	main(len(sys.argv), sys.argv)
+	try:
+		main(len(sys.argv), sys.argv)
+	except urllib.error.URLError:
+		print('Error: there was an error -- maybe there is no Internet connection')
