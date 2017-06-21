@@ -452,7 +452,7 @@ def option_self_update(argc, argv):
 	if old_lines == new_lines:
 		print('already up to date')
 	else:
-		print('successful self-update')
+		print('self-updated successfully')
 
 names = {
 	'actionscript' : 'Actionscript',
