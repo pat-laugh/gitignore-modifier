@@ -1,7 +1,7 @@
 # gitignore-modifier
 Application that allows to easily add and remove template gitignore entries.
 
-Written in Python 3.6.
+Written in Python 3.6. Compatible with Python 2.7.
 
 ## Concept
 
@@ -24,12 +24,9 @@ subdirectory. For instance, for Eclipse, the `<dir/><name>` part would print `Gl
 
 ### Minimal installation
 
-#### Linux and Mac
+Copy the `gitignore.py` file in a location on the PATH.
 
-Copy the `gitignore.py` file in a location on the PATH (like `~/bin`).
-
-Possibly change the write permissions to prevent a user from changing the [local path](#local):
-`chmod 555 gitignore.py`.
+Possibly make the file read-only to prevent a user from changing the [local path](#local).
 
 ### Optional installation
 
@@ -38,11 +35,8 @@ local path to it. That way, you won't have to create a connection for each gitig
 to fetch. The drawbacks of this are the size of the repository and the fact that you'll have
 to update it from time to time.
 
-#### Linux and Mac
-
     git clone https://github.com/github/gitignore.git
-	gitignore.py local set $(pwd)/gitignore
-
+	gitignore.py local set <path to gitignore directory>
 
 ## Errors
 On Mac, there may be an error using urllib. To fix it, you can call
