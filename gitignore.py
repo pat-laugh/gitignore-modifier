@@ -5,6 +5,7 @@
 local_path = None
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
+self_path = 'https://raw.githubusercontent.com/pat-laugh/gitignore-modifier/master/gitignore.py'
 
 import sys, os, urllib.request, re
 from enum import Enum
@@ -24,6 +25,7 @@ class Option(Enum):
 	CLEAR = 6
 	LOCAL = 7
 	LIST = 8
+	SELF_UPDATE = 9
 
 options = {
 	'add': Option.ADD,
@@ -33,6 +35,7 @@ options = {
 	'clear': Option.CLEAR,
 	'local': Option.LOCAL,
 	'list': Option.LIST,
+	'self-update': Option.SELF_UPDATE,
 }
 
 def main(argc, argv):
@@ -48,6 +51,9 @@ def main(argc, argv):
 		sys.exit(1)
 	elif option == Option.LOCAL:
 		option_local(argc, argv)
+		sys.exit(0)
+	elif option == Option.SELF_UPDATE:
+		option_self_update(argc, argv)
 		sys.exit(0)
 	
 	if local_path is not None:
@@ -383,6 +389,33 @@ def add_names_local(subdir):
 				add_names_local(name)
 		except StopIteration:
 			break
+
+def option_self_update(argc, argv):
+	if argc != 2:
+		exit_invalid_arguments(argv[1])
+	with open(__file__, 'r') as f:
+		old_lines = f.readlines()
+	data = urllib.request.urlopen(self_path).readlines()
+	lines = [line.decode('utf-8') for line in data]
+	with open(__file__, 'w') as f:
+		f.writelines(lines)
+	set_local_path(local_path)
+	with open(__file__, 'r') as f:
+		new_lines = f.readlines()
+	if old_lines == new_lines:
+		print('already up to date')
+	else:
+		print('successful self-update')
+
+def set_local_path(path):
+	with open(__file__, 'r') as f:
+		lines = f.readlines()
+	if path is None:
+		lines[local_path_line] = 'local_path = None\n'
+	else:
+		lines[local_path_line] = "local_path = '%s'\n" % path
+	with open(__file__, 'w') as f:
+		f.writelines(lines)
 
 names = {
 	'actionscript' : 'Actionscript',
