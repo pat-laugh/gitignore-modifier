@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # Copyright 2017 Patrick Laughrea
 # Licensed under the Apache License, Version 2.0
 
@@ -7,15 +7,19 @@ local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 self_path = 'https://raw.githubusercontent.com/pat-laugh/gitignore-modifier/master/gitignore.py'
 
-import sys, os, urllib.request, re
-from enum import Enum
+import sys, os, re
+py_v3 = sys.version_info[0] == 3
+if py_v3:
+	import urllib.request
+else:
+	import urllib2
 
 name_gitignore = '.gitignore'
 junk_lines = []
 gitignores = {}
 used_gitignores = []
 
-class Option(Enum):
+class Option:
 	NONE = 0
 	UNKNOWN = 1
 	ADD = 2
@@ -243,7 +247,10 @@ def get_item_lines(name):
 			lines = f.readlines()
 	else:
 		url = online_path + names[name] + '.gitignore'
-		data = urllib.request.urlopen(url).readlines()
+		if py_v3:
+			data = urllib.request.urlopen(url).readlines()
+		else:
+			data = urllib2.urlopen(url).readlines()
 		lines = [line.decode('utf-8') for line in data]
 	last_line = lines[-1]
 	if last_line[-1] != '\n':
@@ -300,7 +307,7 @@ def option_list(argc, argv):
 	print(l)
 
 
-class OptionLocal(Enum):
+class OptionLocal:
 	NONE = 0
 	UNKNOWN = 1
 	SET = 2
@@ -371,7 +378,7 @@ def set_local_path(path):
 	if path is None:
 		lines[local_path_line] = 'local_path = None\n'
 	else:
-		lines[local_path_line] = "local_path = '%s'\n" % path
+		lines[local_path_line] = "local_path = '%s'\n" % re.escape(path)
 	with open(__file__, 'w') as f:
 		f.writelines(lines)
 
@@ -384,38 +391,36 @@ def set_names_local(path):
 		os.chdir(curr_dir)
 	except (LookupError) as e:
 		sys.exit('Error: %s' % e)
-	except (TypeError, FileNotFoundError) as e:
+	except (TypeError, IOError, OSError) as e:
 		sys.exit('Error: local path is invalid')
 
 re_gitignore_file = re.compile(r'([^.]+)\.gitignore')
 def add_names_local(subdir):
-	it = os.scandir(subdir)
-	while True:
-		try:
-			dir_entry = next(it)
-			if dir_entry.is_file():
-				m = re_gitignore_file.match(dir_entry.name)
-				if m is not None:
-					name = m.group(1)
-					lower = m.group(1).lower()
-					if lower in names:
-						raise LookupError('conflicting "%s" templates in local directory' % lower)
-					if subdir == '.':
-						names.update({lower: name})
-					else: # skip the ./
-						names.update({lower: subdir[2:] + os.sep + name})
-			elif dir_entry.is_dir():
-				name = subdir + os.sep + dir_entry.name
-				add_names_local(name)
-		except StopIteration:
-			break
+	for dir_entry in os.listdir(subdir):
+		if os.path.isfile(dir_entry):
+			m = re_gitignore_file.match(dir_entry)
+			if m is not None:
+				name = m.group(1)
+				lower = m.group(1).lower()
+				if lower in names:
+					raise LookupError('conflicting "%s" templates in local directory' % lower)
+				if subdir == '.':
+					names.update({lower: name})
+				else: # skip the ./
+					names.update({lower: subdir[2:] + os.sep + name})
+		elif os.path.isdir(dir_entry):
+			name = subdir + os.sep + dir_entry
+			add_names_local(name)
 
 def option_self_update(argc, argv):
 	if argc != 2:
 		exit_invalid_arguments(argv[1])
 	with open(__file__, 'r') as f:
 		old_lines = f.readlines()
-	data = urllib.request.urlopen(self_path).readlines()
+	if py_v3:
+		data = urllib.request.urlopen(self_path).readlines()
+	else:
+		data = urllib2.urlopen(self_path).readlines()
 	lines = [line.decode('utf-8') for line in data]
 	with open(__file__, 'w') as f:
 		f.writelines(lines)
@@ -621,10 +626,21 @@ names = {
 	'macos' : 'Global/macOS'
 }
 
+msg_error = 'Error: there was an error'
+msg_error_url = 'maybe there is no Internet connection'
+msg_error_permission = 'make sure you can write on the executable file'
 if __name__ == '__main__':
-	try:
-		main(len(sys.argv), sys.argv)
-	except urllib.error.URLError:
-		print('Error: there was an error -- maybe there is no Internet connection')
-	except PermissionError:
-		print('Error: permission denied -- make sure you can write on the executable file')
+	if py_v3:
+		try:
+			main(len(sys.argv), sys.argv)
+		except urllib.error.URLError:
+			print(msg_error + ' -- ' + msg_error_url)
+		except PermissionError:
+			print('Error: permission denied -- ' + msg_error_permission)
+	else:
+		try:
+			main(len(sys.argv), sys.argv)
+		except urllib2.URLError:
+			print(msg_error + ' -- ' + msg_error_url)
+		except IOError:
+			print(msg_error + ' -- ' + msg_error_permission)
