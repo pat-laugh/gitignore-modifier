@@ -22,12 +22,27 @@ subdirectory. For instance, for Eclipse, the `<dir/><name>` part would print `Gl
 
 ## Installation
 
-### Linux and Mac
+### Minimal installation
+
+#### Linux and Mac
 
 Copy the `gitignore.py` file in a location on the PATH (like `~/bin`).
 
 Possibly change the write permissions to prevent a user from changing the [local path](#local):
 `chmod 555 gitignore.py`.
+
+### Optional installation
+
+Preferably, clone the repository from which the gitignore templates are fetched and set the
+local path to it. That way, you won't have to create a connection for each gitignore template
+to fetch. The drawbacks of this are the size of the repository and the fact that you'll have
+to update it from time to time.
+
+#### Linux and Mac
+
+    git clone https://github.com/github/gitignore.git
+	gitignore.py local set $(pwd)/gitignore
+
 
 ## Errors
 On Mac, there may be an error using urllib. To fix it, you can call
