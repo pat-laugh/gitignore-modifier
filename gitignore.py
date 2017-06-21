@@ -43,17 +43,17 @@ options = {
 }
 
 def print_options():
-	print('    {:<12}'.format('add') + 'Adds templates to the .gitignore file')
-	print('    {:<12}'.format('create') + 'Creates a new .gitignore file')
-	print('    {:<12}'.format('remove') + 'Removes templates from the .gitignore file')
-	print('    {:<12}'.format('update') + 'Updates each template in the .gitignore file')
-	print('    {:<12}'.format('clear') + 'Removes all templates from the .gitignore file')
-	print('    {:-<72}'.format(''))
-	print('    {:<12}'.format('local') + 'Local has the following suboptions:')
+	print('    add         Adds templates to the .gitignore file')
+	print('    create      Creates a new .gitignore file')
+	print('    remove      Removes templates from the .gitignore file')
+	print('    update      Updates each template in the .gitignore file')
+	print('    clear       Removes all templates from the .gitignore file')
+	print('    ------------------------------------------------------------------------')
+	print('    local       Local has the following suboptions:')
 	print_local_suboptions()
-	print('    {:-<72}'.format(''))
-	print('    {:<12}'.format('list') + 'Prints a sorted list of all templates in the .gitignore file')
-	print('    {:<12}'.format('self-update') + 'Updates this program')
+	print('    ------------------------------------------------------------------------')
+	print('    list        Prints a sorted list of all templates in the .gitignore file')
+	print('    self-update Updates this program')
 
 def main(argc, argv):
 	check_modifiers(argv)
@@ -321,9 +321,9 @@ options_local = {
 }
 
 def print_local_suboptions():
-	print('      {:<10}'.format('set') + 'Sets a local directory to fetch gitignore templates from')
-	print('      {:<10}'.format('reset') + 'Resets the local directory to None')
-	print('      {:<10}'.format('show') + 'Shows the local path')
+	print('      set       Sets a local directory to fetch gitignore templates from')
+	print('      reset     Resets the local directory to None')
+	print('      show      Shows the local path')
 	
 def option_local(argc, argv):
 	option = get_option_local(argc, argv)
