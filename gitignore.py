@@ -39,7 +39,9 @@ def main(argc, argv):
 	check_modifiers(argv)
 	option = get_option(argc, argv)
 	if option == Option.NONE:
-		sys.exit('Error: no argument provided')
+		print('Error: no argument provided')
+		print('Options are: %s' % list(options.keys()))
+		sys.exit(1)
 	elif option == Option.UNKNOWN:
 		print('Error: unknown option "%s"' % argv[1])
 		print_similar_names(argv[1].lower(), options.keys())
@@ -294,7 +296,9 @@ options_local = {
 def option_local(argc, argv):
 	option = get_option_local(argc, argv)
 	if option == OptionLocal.NONE:
-		sys.exit('Error: no %s suboption provided' % argv[1])
+		print('Error: no %s suboption provided' % argv[1])
+		print('Suboptions are: %s' % list(options_local.keys()))
+		sys.exit(1)
 	elif option == OptionLocal.UNKNOWN:
 		print('Error: unknown %s suboption "%s"' % (argv[1], argv[2]))
 		print_similar_names(argv[2].lower(), options_local.keys())
