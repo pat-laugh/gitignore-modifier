@@ -38,12 +38,26 @@ options = {
 	'self-update': Option.SELF_UPDATE,
 }
 
+def print_options():
+	print('    {:<12}'.format('add') + 'Adds templates to the .gitignore file')
+	print('    {:<12}'.format('create') + 'Creates a new .gitignore file')
+	print('    {:<12}'.format('remove') + 'Removes templates from the .gitignore file')
+	print('    {:<12}'.format('update') + 'Updates each template in the .gitignore file')
+	print('    {:<12}'.format('clear') + 'Removes all templates from the .gitignore file')
+	print('    {:-<72}'.format(''))
+	print('    {:<12}'.format('local') + 'Local has the following suboptions:')
+	print_local_suboptions()
+	print('    {:-<72}'.format(''))
+	print('    {:<12}'.format('list') + 'Prints a sorted list of all templates in the .gitignore file')
+	print('    {:<12}'.format('self-update') + 'Updates this program')
+
 def main(argc, argv):
 	check_modifiers(argv)
 	option = get_option(argc, argv)
 	if option == Option.NONE:
 		print('Error: no argument provided')
-		print('Options are: %s' % list(options.keys()))
+		print('Options are:')
+		print_options()
 		sys.exit(1)
 	elif option == Option.UNKNOWN:
 		print('Error: unknown option "%s"' % argv[1])
@@ -299,11 +313,17 @@ options_local = {
 	'show': OptionLocal.SHOW
 }
 
+def print_local_suboptions():
+	print('      {:<10}'.format('set') + 'Sets a local directory to fetch gitignore templates from')
+	print('      {:<10}'.format('reset') + 'Resets the local directory to None')
+	print('      {:<10}'.format('show') + 'Shows the local path')
+	
 def option_local(argc, argv):
 	option = get_option_local(argc, argv)
 	if option == OptionLocal.NONE:
 		print('Error: no %s suboption provided' % argv[1])
-		print('Suboptions are: %s' % list(options_local.keys()))
+		print('Suboptions are:')
+		print_local_suboptions()
 		sys.exit(1)
 	elif option == OptionLocal.UNKNOWN:
 		print('Error: unknown %s suboption "%s"' % (argv[1], argv[2]))
