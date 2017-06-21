@@ -396,21 +396,43 @@ def set_names_local(path):
 
 re_gitignore_file = re.compile(r'([^.]+)\.gitignore')
 def add_names_local(subdir):
-	for dir_entry in os.listdir(subdir):
-		if os.path.isfile(dir_entry):
-			m = re_gitignore_file.match(dir_entry)
-			if m is not None:
-				name = m.group(1)
-				lower = m.group(1).lower()
-				if lower in names:
-					raise LookupError('conflicting "%s" templates in local directory' % lower)
-				if subdir == '.':
-					names.update({lower: name})
-				else: # skip the ./
-					names.update({lower: subdir[2:] + os.sep + name})
-		elif os.path.isdir(dir_entry):
-			name = subdir + os.sep + dir_entry
-			add_names_local(name)
+	if py_v3:
+		it = os.scandir(subdir)
+		while True:
+			try:
+				dir_entry = next(it)
+				if dir_entry.is_file():
+					m = re_gitignore_file.match(dir_entry.name)
+					if m is not None:
+						name = m.group(1)
+						lower = m.group(1).lower()
+						if lower in names:
+							raise LookupError('conflicting "%s" templates in local directory' % lower)
+						if subdir == '.':
+							names.update({lower: name})
+						else: # skip the ./
+							names.update({lower: subdir[2:] + os.sep + name})
+				elif dir_entry.is_dir():
+					name = subdir + os.sep + dir_entry.name
+					add_names_local(name)
+			except StopIteration:
+				break
+	else:
+		for dir_entry in os.listdir(subdir):
+			if os.path.isfile(dir_entry):
+				m = re_gitignore_file.match(dir_entry)
+				if m is not None:
+					name = m.group(1)
+					lower = m.group(1).lower()
+					if lower in names:
+						raise LookupError('conflicting "%s" templates in local directory' % lower)
+					if subdir == '.':
+						names.update({lower: name})
+					else: # skip the ./
+						names.update({lower: subdir[2:] + os.sep + name})
+			elif os.path.isdir(dir_entry):
+				name = subdir + os.sep + dir_entry
+				add_names_local(name)
 
 def option_self_update(argc, argv):
 	if argc != 2:
