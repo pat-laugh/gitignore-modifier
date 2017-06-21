@@ -20,6 +20,15 @@ Each .gitignore template is preceded by a line `##gitignore-start:<dir/><name>.g
 a line `##gitignore-end:<dir/><name>.gitignore`. `<dir/>` is there for patterns within a
 subdirectory. For instance, for Eclipse, the `<dir/><name>` part would print `Global/Eclipse`.
 
+## Installation
+
+### Linux and Mac
+
+Copy the `gitignore.py` file in a location on the PATH (like `~/bin`).
+
+Possibly change the write permissions to prevent a user from changing the [local path](#local):
+`chmod 555 gitignore.py`.
+
 ## Errors
 On Mac, there may be an error using urllib. To fix it, you can call
 `pip install --upgrade certifi` to update the certifi package.
