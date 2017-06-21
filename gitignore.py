@@ -569,3 +569,5 @@ if __name__ == '__main__':
 		main(len(sys.argv), sys.argv)
 	except urllib.error.URLError:
 		print('Error: there was an error -- maybe there is no Internet connection')
+	except PermissionError:
+		print('Error: permission denied -- make sure you can write on the executable file')
