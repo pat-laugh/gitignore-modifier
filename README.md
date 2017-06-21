@@ -57,6 +57,7 @@ On Mac, there may be an error using urllib. To fix it, you can call
 - Clear
 - Local
 - List
+- Self-update
 - -f --file
 
 ### Add
@@ -70,6 +71,14 @@ If the .gitignore file does not exist, creates a new one.
 
 Existing templates are updates and new ones are added.
 
+### Create
+
+If the .gitignore file does not exist, creates a new one, else **overwrites** it.
+
+Then does the equivalent of `add` if there are template names.
+
+    create [names]?
+
 ### Remove
 
 Removes templates from the .gitignore file. It parses the file to find appropriate
@@ -78,14 +87,6 @@ Removes templates from the .gitignore file. It parses the file to find appropria
     remove [names]
 
 If the .gitignore file does not exist, does nothing.
-
-### Create
-
-If the .gitignore file does not exist, creates a new one, else **overwrites** it.
-
-Then does the equivalent of `add` if there are template names.
-
-    create [names]?
 
 ### Update
 
@@ -108,10 +109,10 @@ If the .gitignore file does not exist, does nothing.
 ### Local
 
 Local has the following suboptions:
- -  Set: must be followed by a path name. It sets a local directory to fetch gitignore
+- Set: must be followed by a path name. It sets a local directory to fetch gitignore
     templates from.
- -  Reset: resets the local directory to `None`.
- -  Show: if set, then shows local path, else prints that it's not set.
+- Reset: resets the local directory to `None`.
+- Show: if set, then shows the local path, else prints that it's not set.
 
 What happens is that in the script there is a variable called `local_path`. If it set
 to `None`, then gitignore templates are fetched from the link given above. If it is
@@ -131,6 +132,13 @@ Prints a sorted list of all templates in the .gitignore file.
     list
 
 If the .gitignore file does not exist, does nothing.
+
+### Self-update
+
+Updates the program by overwriting it with the document fetched from here. The local
+path is not affected by this.
+
+    self-update
 
 ### -f --file
 
@@ -165,3 +173,5 @@ Type `gitignore.py update` to update current templates.
 Type `gitignore.py clear` to remove all templates.
 
 Type `gitignore.py list` to list all templates.
+
+Type `gitignore.py self-update` to make the program up to date.
