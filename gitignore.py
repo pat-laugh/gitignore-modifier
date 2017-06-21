@@ -148,7 +148,7 @@ def option_remove(argc, argv):
 		remove(name)
 
 def get_re_gitignore(tag):
-	return re.compile(r'^\s*#+\s*gitignore-%s:([!-.0-~]+/)*([!-.0-~]+)$' % tag)
+	return re.compile(r'^\s*#+\s*gitignore-%s:([!-.0-~]+(/|\\))*([!-.0-~]+)\s*$' % tag)
 
 re_start = get_re_gitignore('start')
 def parse_file(filename):
@@ -159,7 +159,7 @@ def parse_file(filename):
 			if m is None:
 				junk_lines.append(line)
 			else:
-				name = m.group(2)
+				name = m.group(3)
 				parse_gitignore(f, name)
 				if name.lower() not in names:
 					errors.append(name)
@@ -178,7 +178,7 @@ def parse_gitignore(f, name):
 	gitignore_lines = []
 	for line in f:
 		m = re_end.match(line)
-		if m is None or m.group(2) != name:
+		if m is None or m.group(3) != name:
 			gitignore_lines.append(line)
 		else:
 			gitignores.update({name.lower(): gitignore_lines})
@@ -258,7 +258,7 @@ def get_item_lines(name):
 	check_gitignore_links(lines, name, update_gitignores)
 	return lines
 
-re_gitignore_link = re.compile(r'^(#|\s)*([!-.0-~]+/)*([!-.0-~]+)\.gitignore$')
+re_gitignore_link = re.compile(r'^(#|\s)*([!-.0-~]+/)*([!-.0-~]+)\.gitignore\s*$')
 def check_gitignore_links(lines, linker, func):
 	for line in lines:
 		m = re_gitignore_link.match(line)
