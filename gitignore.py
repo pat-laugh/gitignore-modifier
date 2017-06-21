@@ -378,7 +378,7 @@ def set_local_path(path):
 	if path is None:
 		lines[local_path_line] = 'local_path = None\n'
 	else:
-		lines[local_path_line] = "local_path = '%s'\n" % re.escape(path)
+		lines[local_path_line] = "local_path = '%s'\n" % path.replace('\\', '\\\\')
 	with open(__file__, 'w') as f:
 		f.writelines(lines)
 
@@ -431,16 +431,6 @@ def option_self_update(argc, argv):
 		print('already up to date')
 	else:
 		print('successful self-update')
-
-def set_local_path(path):
-	with open(__file__, 'r') as f:
-		lines = f.readlines()
-	if path is None:
-		lines[local_path_line] = 'local_path = None\n'
-	else:
-		lines[local_path_line] = "local_path = '%s'\n" % path
-	with open(__file__, 'w') as f:
-		f.writelines(lines)
 
 names = {
 	'actionscript' : 'Actionscript',
