@@ -327,7 +327,7 @@ def print_local_suboptions():
 	print('      set       Sets a local directory to fetch gitignore templates from')
 	print('      reset     Resets the local directory to None')
 	print('      show      Shows the local path')
-	print('      call      Call a command in the local directory')
+	print('      call      Calls a command in the local directory')
 	
 def option_local(argc, argv):
 	option = get_option_local(argc, argv)
