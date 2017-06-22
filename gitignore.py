@@ -8,6 +8,7 @@ online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 self_path = 'https://raw.githubusercontent.com/pat-laugh/gitignore-modifier/master/gitignore.py'
 
 import sys, os, re
+from subprocess import call
 py_v3 = sys.version_info[0] == 3
 if py_v3:
 	import urllib.request
@@ -313,17 +314,20 @@ class OptionLocal:
 	SET = 2
 	RESET = 3
 	SHOW = 4
+	CALL = 5
 
 options_local = {
 	'set': OptionLocal.SET,
 	'reset': OptionLocal.RESET,
-	'show': OptionLocal.SHOW
+	'show': OptionLocal.SHOW,
+	'call': OptionLocal.CALL,
 }
 
 def print_local_suboptions():
 	print('      set       Sets a local directory to fetch gitignore templates from')
 	print('      reset     Resets the local directory to None')
 	print('      show      Shows the local path')
+	print('      call      Call a command in the local directory')
 	
 def option_local(argc, argv):
 	option = get_option_local(argc, argv)
@@ -342,6 +346,8 @@ def option_local(argc, argv):
 		option_local_reset(argc, argv)
 	elif option == OptionLocal.SHOW:
 		option_local_show(argc, argv)
+	elif option == OptionLocal.CALL:
+		option_local_call(argc, argv)
 
 def get_option_local(argc, argv):
 	if argc <= 2:
@@ -371,6 +377,21 @@ def option_local_show(argc, argv):
 		print('local path is not set')
 	else:
 		print('local path set to "%s"' % local_path)
+
+def option_local_call(argc, argv):
+	if local_path is None:
+		sys.exit('Error: local path is not set')
+	
+	try:
+		curr_dir = os.getcwd()
+		os.chdir(local_path)
+		print('Output of the call with parameters %s:\n' % argv[3:])
+		print(call(argv[3:]))
+		os.chdir(curr_dir)
+	except (LookupError) as e:
+		sys.exit('Error: %s' % e)
+	except (TypeError, IOError, OSError) as e:
+		sys.exit('Error: local path or command is invalid')
 
 def set_local_path(path):
 	with open(__file__, 'r') as f:
