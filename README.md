@@ -107,6 +107,7 @@ Local has the following suboptions:
     templates from.
 - Reset: resets the local directory to `None`.
 - Show: if set, then shows the local path, else prints that it's not set.
+- Call: if the local directory is set, calls a command in it
 
 What happens is that in the script there is a variable called `local_path`. If it set
 to `None`, then gitignore templates are fetched from the link given above. If it is
@@ -118,6 +119,9 @@ For instance, `local set /Users/Pat-Laugh/gitignore` would make it so when `add 
 is called, the file "/Users/Pat-Laugh/gitignore/C++.gitignore" is fetched. The directory
 provided must be correct and there can't be any conflicting template names, even if
 they are in different directories.
+
+Not all commands might work with `local call`. The command must not be quoted. For
+instance, `local call git pull` will call `git pull` in the local directory.
 
 ### List
 
