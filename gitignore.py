@@ -6,7 +6,7 @@ local_path = None
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 self_path = 'https://raw.githubusercontent.com/pat-laugh/gitignore-modifier/master/gitignore.py'
-version = [1, 5, 0, 'dev', 2]
+version = [1, 5, 0, 'dev', 3]
 version_line = 8
 
 import sys, os, re
@@ -458,7 +458,7 @@ def get_new_version(lines):
 	patch = int(m.group(3))
 	stage = m.group(5) or su_def_stage
 	alpha = su_def_alpha if m.group(7) is None else int(m.group(7))
-	return [m.group(1), m.group(2), m.group(3), m.group(5) or su_def_stage, m.group(7) or su_def_alpha]
+	return [major, minor, patch, stage, alpha]
 
 su_up_to_date = 'already up to date'
 su_successful = 'self-updated successfully'
