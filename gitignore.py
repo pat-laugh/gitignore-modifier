@@ -6,6 +6,8 @@ local_path = None
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 self_path = 'https://raw.githubusercontent.com/pat-laugh/gitignore-modifier/master/gitignore.py'
+version = [1, 5, 0, 'dev', 0]
+version_line = 8
 
 import sys, os, re
 from subprocess import call
@@ -444,6 +446,17 @@ def add_names_local(subdir):
 			elif os.path.isdir(path):
 				add_names_local(path)
 
+su_def_stage = 'prod'
+su_def_alpha = 0
+re_version = re.compile(r'\[\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(,\s*('dev'|'prod')\s*(,\s*(\d+)\s*)?)?,?\s*\]')
+def get_new_version(lines):
+	m = re_version.match(lines[version_line])
+	if m is None:
+		return None
+	return [m.group(1), m.group(2), m.group(3), m.group(5) or su_def_stage, m.group(7) or su_def_alpha]
+
+su_up_to_date = 'already up to date'
+su_successful = 'self-updated successfully'
 def option_self_update(argc, argv):
 	if argc != 2:
 		exit_invalid_arguments(argv[1])
@@ -454,15 +467,44 @@ def option_self_update(argc, argv):
 	else:
 		data = urllib2.urlopen(self_path).readlines()
 	lines = [line.decode('utf-8') for line in data]
+	new_v = get_new_version(lines)
+	if new_v is None:
+		write_self_update(lines, local_path)
+		with open(__file__, 'r') as f:
+			new_lines = f.readlines()
+		if old_lines == new_lines:
+			print(su_up_to_date)
+		else:
+			print(su_successful)
+	else:
+		if len(version) < 5:
+			if len(version) < 4:
+				version.append(su_def_stage)
+			version.append(su_def_alpha)
+		if version == new_v:
+			print(su_up_to_date)
+		if version[0] != new_v[0]:
+			self_update_warning('Warning: new version is incompatible with current version.')
+		if (version[3] != 'prod'):
+			self_update_warning('Warning: new version is not a production version.')
+		write_self_update(lines, local_path)
+		print(su_successful)
+		
+def write_self_update(lines, local_path):
 	with open(__file__, 'w') as f:
 		f.writelines(lines)
 	set_local_path(local_path)
-	with open(__file__, 'r') as f:
-		new_lines = f.readlines()
-	if old_lines == new_lines:
-		print('already up to date')
-	else:
-		print('self-updated successfully')
+
+def self_update_warning(warning):
+	while True:
+		sys.stdout.write(warning + ' Continue? (y/n) ')
+		sys.stdout.flush()
+		a = sys.stdin.readline().strip()[:1].lower()
+		if (a == 'y'):
+			break;
+		if (a == 'n'):
+			print('self-update cancelled')
+			sys.exit()
 
 names = {
 	'actionscript' : 'Actionscript',
