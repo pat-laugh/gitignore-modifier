@@ -440,7 +440,8 @@ def add_names_local(subdir):
 				break
 	else:
 		for dir_entry in os.listdir(subdir):
-			if os.path.isfile(dir_entry):
+			path_name = os.path.join(subdir, dir_entry)
+			if os.path.isfile(path_name):
 				m = re_gitignore_file.match(dir_entry)
 				if m is not None:
 					name = m.group(1)
@@ -451,9 +452,8 @@ def add_names_local(subdir):
 						names.update({lower: name})
 					else: # skip the ./
 						names.update({lower: subdir[2:] + os.sep + name})
-			elif os.path.isdir(dir_entry):
-				name = subdir + os.sep + dir_entry
-				add_names_local(name)
+			elif os.path.isdir(path_name):
+				add_names_local(path_name)
 
 def option_self_update(argc, argv):
 	if argc != 2:
