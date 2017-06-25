@@ -448,7 +448,7 @@ def add_names_local(subdir):
 
 su_def_stage = 'prod'
 su_def_alpha = 0
-re_version = re.compile(r'\[\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(,\s*('dev'|'prod')\s*(,\s*(\d+)\s*)?)?,?\s*\]')
+re_version = re.compile(r"\[\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(,\s*('dev'|'prod')\s*(,\s*(\d+)\s*)?)?,?\s*\]")
 def get_new_version(lines):
 	m = re_version.match(lines[version_line])
 	if m is None:
