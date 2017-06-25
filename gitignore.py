@@ -6,7 +6,7 @@ local_path = None
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 self_path = 'https://raw.githubusercontent.com/pat-laugh/gitignore-modifier/master/gitignore.py'
-version = [1, 5, 0, 'dev', 0]
+version = [1, 5, 0, 'dev', 1]
 version_line = 8
 
 import sys, os, re
@@ -196,9 +196,9 @@ def write_file(filename):
 	f = open(filename, 'w')
 	f.writelines(junk_lines)
 	for name, lines in gitignores.items():
-		f.write(get_gitignore_tag('start', names[name]))
+		f.write(get_gitignore_tag('start', name))
 		f.writelines(lines)
-		f.write(get_gitignore_tag('end', names[name]))
+		f.write(get_gitignore_tag('end', name))
 	f.close()
 
 def close_similarity(s1, s2):
