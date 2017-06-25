@@ -6,7 +6,7 @@ local_path = None
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 self_path = 'https://raw.githubusercontent.com/pat-laugh/gitignore-modifier/master/gitignore.py'
-version = [1, 5, 0, 'dev', 3]
+version = [1, 5, 0, 'dev', 4]
 version_line = 8
 
 import sys, os, re
@@ -488,6 +488,7 @@ def option_self_update(argc, argv):
 			version.append(su_def_alpha)
 		if version == new_v:
 			print(su_up_to_date)
+			sys.exit()
 		if version[0] != new_v[0]:
 			self_update_warning('Warning: new version is incompatible with current version.')
 		if (version[3] != new_v[3] and new_v[3] != 'prod'):
