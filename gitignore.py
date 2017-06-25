@@ -6,7 +6,7 @@ local_path = None
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 self_path = 'https://raw.githubusercontent.com/pat-laugh/gitignore-modifier/master/gitignore.py'
-version = [1, 5, 0, 'dev', 1]
+version = [1, 5, 0, 'dev', 2]
 version_line = 8
 
 import sys, os, re
@@ -448,11 +448,16 @@ def add_names_local(subdir):
 
 su_def_stage = 'prod'
 su_def_alpha = 0
-re_version = re.compile(r"\[\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(,\s*('dev'|'prod')\s*(,\s*(\d+)\s*)?)?,?\s*\]")
+re_version = re.compile(r".*\[\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(,\s*'(dev|prod)'\s*(,\s*(\d+)\s*)?)?,?\s*\]")
 def get_new_version(lines):
 	m = re_version.match(lines[version_line])
 	if m is None:
 		return None
+	major = int(m.group(1))
+	minor = int(m.group(2))
+	patch = int(m.group(3))
+	stage = m.group(5) or su_def_stage
+	alpha = su_def_alpha if m.group(7) is None else int(m.group(7))
 	return [m.group(1), m.group(2), m.group(3), m.group(5) or su_def_stage, m.group(7) or su_def_alpha]
 
 su_up_to_date = 'already up to date'
@@ -485,7 +490,7 @@ def option_self_update(argc, argv):
 			print(su_up_to_date)
 		if version[0] != new_v[0]:
 			self_update_warning('Warning: new version is incompatible with current version.')
-		if (version[3] != 'prod'):
+		if (version[3] != new_v[3] and new_v[3] != 'prod'):
 			self_update_warning('Warning: new version is not a production version.')
 		write_self_update(lines, local_path)
 		print(su_successful)
