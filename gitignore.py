@@ -416,44 +416,33 @@ def set_names_local(path):
 		sys.exit('Error: local path is invalid')
 
 re_gitignore_file = re.compile(r'([^.]+)\.gitignore')
+def check_local_file(subdir, path_name):
+	m = re_gitignore_file.match(path_name)
+	if m is not None:
+		name = m.group(1)
+		lower = m.group(1).lower()
+		if lower in names:
+			raise LookupError('conflicting "%s" templates in local directory' % lower)
+		if subdir == '.':
+			names.update({lower: name})
+		else: # skip the ./
+			names.update({lower: subdir[2:] + os.sep + name})
+
 def add_names_local(subdir):
 	if py_v3:
-		it = os.scandir(subdir)
-		while True:
-			try:
-				dir_entry = next(it)
-				if dir_entry.is_file():
-					m = re_gitignore_file.match(dir_entry.name)
-					if m is not None:
-						name = m.group(1)
-						lower = m.group(1).lower()
-						if lower in names:
-							raise LookupError('conflicting "%s" templates in local directory' % lower)
-						if subdir == '.':
-							names.update({lower: name})
-						else: # skip the ./
-							names.update({lower: subdir[2:] + os.sep + name})
-				elif dir_entry.is_dir():
-					name = subdir + os.sep + dir_entry.name
-					add_names_local(name)
-			except StopIteration:
-				break
+		for path in os.scandir(subdir):
+			path_name = path.name
+			if path.is_file():
+				check_local_file(subdir, path_name)
+			elif path.is_dir():
+				add_names_local(subdir + os.sep + path_name)
 	else:
-		for dir_entry in os.listdir(subdir):
-			path_name = os.path.join(subdir, dir_entry)
-			if os.path.isfile(path_name):
-				m = re_gitignore_file.match(dir_entry)
-				if m is not None:
-					name = m.group(1)
-					lower = m.group(1).lower()
-					if lower in names:
-						raise LookupError('conflicting "%s" templates in local directory' % lower)
-					if subdir == '.':
-						names.update({lower: name})
-					else: # skip the ./
-						names.update({lower: subdir[2:] + os.sep + name})
-			elif os.path.isdir(path_name):
-				add_names_local(path_name)
+		for path_name in os.listdir(subdir):
+			path = os.path.join(subdir, path_name)
+			if os.path.isfile(path):
+				check_local_file(subdir, path_name)
+			elif os.path.isdir(path):
+				add_names_local(path)
 
 def option_self_update(argc, argv):
 	if argc != 2:
