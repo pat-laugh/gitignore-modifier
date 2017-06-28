@@ -1,4 +1,4 @@
-# gitignore-modifier
+# Gitignore Modifier
 Application that allows to easily add and remove template gitignore entries.
 
 Written in Python 3.6. Compatible with Python 2.7.
