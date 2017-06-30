@@ -6,7 +6,7 @@ local_path = None
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 self_path = 'https://raw.githubusercontent.com/pat-laugh/gitignore-modifier/master/gitignore.py'
-version = [1, 5, 0, 'dev', 6]
+version = [1, 5, 0, 'dev', 7]
 version_line = 8
 
 import sys, os, re
@@ -62,12 +62,12 @@ def main(argc, argv):
 	check_modifiers(argv)
 	option = get_option(argc, argv)
 	if option == Option.NONE:
-		print('Error: no argument provided')
+		print('Error: no argument provided.')
 		print('Options are:')
 		print_options()
 		sys.exit(1)
 	elif option == Option.UNKNOWN:
-		print('Error: unknown option "%s"' % argv[1])
+		print('Error: unknown option "%s".' % argv[1])
 		print_similar_names(argv[1].lower(), options.keys())
 		sys.exit(1)
 	elif option == Option.LOCAL:
@@ -81,7 +81,7 @@ def main(argc, argv):
 		set_names_local(local_path)
 	
 	if not check_file_gitignore(option):
-		sys.exit('Error: no %s file found' % name_gitignore)
+		sys.exit('Error: no %s file found.' % name_gitignore)
 	
 	if option == Option.ADD:
 		option_add(argc, argv)
@@ -110,7 +110,7 @@ def modifier_file(argv, index):
 	global name_gitignore
 	index_filename = index + 1;
 	if (index_filename >= len(argv)):
-		sys.exit('Error: a name must be provided for modifier -f or --file')
+		sys.exit('Error: a filename must be provided for modifier -f or --file.')
 	name_gitignore = argv[index_filename]
 	argv.pop(index_filename)
 	argv.pop(index)
@@ -136,7 +136,7 @@ def create_file():
 	print('%s created' % name_gitignore)
 
 def exit_invalid_arguments(option_name):
-	sys.exit('Error: invalid arguments for "%s"' % option_name)
+	sys.exit('Error: invalid arguments for "%s".' % option_name)
 
 def option_add(argc, argv):
 	if argc < 3:
@@ -167,7 +167,11 @@ def parse_file(filename):
 				if name.lower() not in names:
 					errors.append(name)
 	if len(errors) > 0:
-		print('\tInvalid %s file:' % name_gitignore)
+		if len(errors) == 1:
+			print('There was an error while parsing the %s file.' % name_gitignore)
+			error_unknown_gitignore(errors[0])
+			sys.exit(1)
+		print('There were multiple errors while parsing the %s file.' % name_gitignore)
 		for n in errors:
 			error_unknown_gitignore(n)
 		sys.exit(1)
@@ -186,8 +190,8 @@ def parse_gitignore(f, name):
 		else:
 			gitignores.update({name.lower(): gitignore_lines})
 			return
-	print('\tInvalid %s file:' % name_gitignore)
-	sys.exit('Error: the start tag for "%s" is not matched by a corresponding end tag' % name)
+	print('There was an error while parsing the %s file.' % name_gitignore)
+	sys.exit('Error: the start tag for "%s" is not matched by a corresponding end tag.' % name)
 
 def get_gitignore_tag(tag, name):
 	return '##gitignore-%s:%s\n' % (tag, name)
@@ -288,7 +292,7 @@ def remove(name):
 		gitignores.pop(lower)
 		print('%s removed' % name)
 	except KeyError:
-		print('Error: %s not in file' % name)
+		print('Error: %s not in file.' % name)
 
 def option_update(argc, argv):
 	if argc != 2:
@@ -300,7 +304,7 @@ def option_clear(argc, argv):
 	if argc != 2:
 		exit_invalid_arguments(argv[1])
 	gitignores.clear()
-	print('file cleared')
+	print('File cleared.')
 
 def option_list(argc, argv):
 	if argc != 2:
@@ -334,12 +338,12 @@ def print_local_suboptions():
 def option_local(argc, argv):
 	option = get_option_local(argc, argv)
 	if option == OptionLocal.NONE:
-		print('Error: no %s suboption provided' % argv[1])
+		print('Error: no %s suboption provided.' % argv[1])
 		print('Suboptions are:')
 		print_local_suboptions()
 		sys.exit(1)
 	elif option == OptionLocal.UNKNOWN:
-		print('Error: unknown %s suboption "%s"' % (argv[1], argv[2]))
+		print('Error: unknown %s suboption "%s".' % (argv[1], argv[2]))
 		print_similar_names(argv[2].lower(), options_local.keys())
 		sys.exit(1)
 	elif option == OptionLocal.SET:
@@ -364,25 +368,25 @@ def option_local_set(argc, argv):
 		new_local_path += os.sep
 	set_names_local(new_local_path)
 	set_local_path(new_local_path)
-	print('local path set to "%s"' % new_local_path)
+	print('Local path set to "%s".' % new_local_path)
 
 def option_local_reset(argc, argv):
 	if argc != 3:
 		exit_invalid_arguments('%s %s' % (argv[1], argv[2]))
 	set_local_path(None)
-	print('local path reset')
+	print('Local path reset.')
 
 def option_local_show(argc, argv):
 	if argc != 3:
 		exit_invalid_arguments('%s %s' % (argv[1], argv[2]))
 	if local_path is None:
-		print('local path is not set')
+		print('Local path is not set.')
 	else:
-		print('local path set to "%s"' % local_path)
+		print(local_path)
 
 def option_local_call(argc, argv):
 	if local_path is None:
-		sys.exit('Error: local path is not set')
+		sys.exit('Error: local path is not set.')
 	
 	try:
 		curr_dir = os.getcwd()
@@ -391,9 +395,9 @@ def option_local_call(argc, argv):
 		print(call(argv[3:]))
 		os.chdir(curr_dir)
 	except (LookupError) as e:
-		sys.exit('Error: %s' % e)
+		sys.exit('Error: %s.' % e)
 	except (TypeError, IOError, OSError) as e:
-		sys.exit('Error: local path or command is invalid')
+		sys.exit('Error: local path or command is invalid.')
 
 def set_local_path(path):
 	with open(__file__, 'r') as f:
@@ -413,9 +417,9 @@ def set_names_local(path):
 		add_names_local('.')
 		os.chdir(curr_dir)
 	except (LookupError) as e:
-		sys.exit('Error: %s' % e)
+		sys.exit('Error: %s.' % e)
 	except (TypeError, IOError, OSError) as e:
-		sys.exit('Error: local path is invalid')
+		sys.exit('Error: local path is invalid.')
 
 re_gitignore_file = re.compile(r'([^.]+)\.gitignore')
 def check_local_file(subdir, path_name):
@@ -460,8 +464,8 @@ def get_new_version(lines):
 	alpha = su_def_alpha if m.group(7) is None else int(m.group(7))
 	return [major, minor, patch, stage, alpha]
 
-su_up_to_date = 'already up to date'
-su_successful = 'self-updated successfully'
+su_up_to_date = 'Already up to date.'
+su_successful = 'Self-updated successfully.'
 def option_self_update(argc, argv):
 	if argc != 2:
 		exit_invalid_arguments(argv[1])
@@ -509,7 +513,7 @@ def self_update_warning(warning):
 		if (a == 'y'):
 			break;
 		if (a == 'n'):
-			print('self-update cancelled')
+			print('Self-update cancelled.')
 			sys.exit()
 
 names = {'nanoc':'Nanoc','webmethods':'Global/WebMethods','commonlisp':'CommonLisp','xcode':'Global/Xcode','sublimetext':'Global/SublimeText','bricxcc':'Global/BricxCC','lemonstand':'LemonStand','concrete5':'Concrete5','go':'Go','jdeveloper':'Global/JDeveloper','ros':'ROS','zephir':'Zephir','kate':'Global/Kate','typo3':'Typo3','anjuta':'Global/Anjuta','cakephp':'CakePHP','textpattern':'Textpattern','elm':'Elm','modelsim':'Global/ModelSim','momentics':'Global/Momentics','fortran':'Fortran','gcov':'Gcov','ada':'Ada','libreoffice':'Global/LibreOffice','erlang':'Erlang','yeoman':'Yeoman','dm':'DM','playframework':'PlayFramework','python':'Python','monodevelop':'Global/MonoDevelop','dart':'Dart','craftcms':'CraftCMS','julia':'Julia','ninja':'Global/Ninja','vim':'Global/Vim','qt':'Qt','eiffelstudio':'Global/EiffelStudio','tortoisegit':'Global/TortoiseGit','d':'D','mercurial':'Global/Mercurial','c++':'C++','gradle':'Gradle','rhodesrhomobile':'RhodesRhomobile','xilinxise':'Global/XilinxISE','sketchup':'SketchUp','chefcookbook':'ChefCookbook','kohana':'Kohana','netbeans':'Global/NetBeans','packer':'Packer','elisp':'Elisp','tex':'TeX','sdcc':'Sdcc','turbogears2':'TurboGears2','virtualenv':'Global/VirtualEnv','scons':'SCons','scala':'Scala','delphi':'Delphi','unrealengine':'UnrealEngine','redis':'Global/Redis','jboss':'Jboss','lua':'Lua','zendframework':'ZendFramework','stata':'Global/Stata','visualstudio':'VisualStudio','eagle':'Eagle','appceleratortitanium':'AppceleratorTitanium','sbt':'Global/SBT','tags':'Global/Tags','opencart':'OpenCart','processing':'Processing','maven':'Maven','redcar':'Global/Redcar','elixir':'Elixir','bazaar':'Global/Bazaar','swift':'Swift','laravel':'Laravel','c':'C','drupal':'Drupal','synopsysvcs':'Global/SynopsysVCS','extjs':'ExtJs','ocaml':'OCaml','stella':'Stella','joomla':'Joomla','appengine':'AppEngine','waf':'Waf','clojure':'Clojure','lilypond':'Lilypond','symfony':'Symfony','yii':'Yii','sugarcrm':'SugarCRM','microsoftoffice':'Global/MicrosoftOffice','fancy':'Fancy','jenv':'Global/JEnv','terraform':'Terraform','haskell':'Haskell','cloud9':'Global/Cloud9','composer':'Composer','linux':'Global/Linux','fuelphp':'FuelPHP','archlinuxpackages':'ArchLinuxPackages','plone':'Plone','phalcon':'Phalcon','cfwheels':'CFWheels','mercury':'Mercury','java':'Java','codeigniter':'CodeIgniter','symphonycms':'SymphonyCMS','gpg':'Global/GPG','episerver':'EPiServer','slickedit':'Global/SlickEdit','rails':'Rails','perl':'Perl','emacs':'Global/Emacs','archives':'Global/Archives','dreamweaver':'Global/Dreamweaver','expressionengine':'ExpressionEngine','wordpress':'WordPress','scheme':'Scheme','matlab':'Global/Matlab','coq':'Coq','kdevelop4':'Global/KDevelop4','notepadpp':'Global/NotepadPP','macos':'Global/macOS','lazarus':'Global/Lazarus','ruby':'Ruby','jetbrains':'Global/JetBrains','igorpro':'IGORPro','eclipse':'Global/Eclipse','cvs':'Global/CVS','labview':'LabVIEW','r':'R','magento':'Magento','rust':'Rust','lyx':'Global/LyX','objective-c':'Objective-C','ansible':'Global/Ansible','oracleforms':'OracleForms','visualstudiocode':'Global/VisualStudioCode','xojo':'Xojo','smalltalk':'Smalltalk','metaprogrammingsystem':'MetaProgrammingSystem','umbraco':'Umbraco','cmake':'CMake','vvvv':'VVVV','kicad':'KiCad','scrivener':'Scrivener','gwt':'GWT','vagrant':'Global/Vagrant','leiningen':'Leiningen','prestashop':'Prestashop','unity':'Unity','otto':'Global/Otto','actionscript':'Actionscript','android':'Android','lithium':'Lithium','codekit':'Global/CodeKit','qooxdoo':'Qooxdoo','cuda':'CUDA','node':'Node','nim':'Nim','finale':'Finale','gitbook':'GitBook','flexbuilder':'Global/FlexBuilder','darteditor':'Global/DartEditor','dropbox':'Global/Dropbox','idris':'Idris','calabash':'Global/Calabash','agda':'Agda','svn':'Global/SVN','autotools':'Autotools','ensime':'Global/Ensime','sass':'Sass','jekyll':'Jekyll','windows':'Global/Windows','seamgen':'SeamGen','grails':'Grails','purescript':'PureScript','espresso':'Global/Espresso','textmate':'Global/TextMate','forcedotcom':'ForceDotCom','opa':'Opa'}
@@ -522,13 +526,13 @@ if __name__ == '__main__':
 		try:
 			main(len(sys.argv), sys.argv)
 		except urllib.error.URLError:
-			print(msg_error + ' -- ' + msg_error_url)
+			print('%s -- %s.' % (msg_error, msg_error_url))
 		except PermissionError:
-			print('Error: permission denied -- ' + msg_error_permission)
+			print('Error: permission denied -- %s.' % msg_error_permission)
 	else:
 		try:
 			main(len(sys.argv), sys.argv)
 		except urllib2.URLError:
-			print(msg_error + ' -- ' + msg_error_url)
+			print('%s -- %s.' % (msg_error, msg_error_url))
 		except IOError:
-			print(msg_error + ' -- ' + msg_error_permission)
+			print('%s -- %s.' % (msg_error, msg_error_permission))
