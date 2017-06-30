@@ -359,7 +359,7 @@ def get_option_local(argc, argv):
 def option_local_set(argc, argv):
 	if argc != 4:
 		exit_invalid_arguments('%s %s' % (argv[1], argv[2]))
-	new_local_path = argv[3]
+	new_local_path = os.path.abspath(argv[3])
 	if new_local_path[-1] != os.sep:
 		new_local_path += os.sep
 	set_names_local(new_local_path)
