@@ -6,7 +6,7 @@ local_path = None
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 self_path = 'https://raw.githubusercontent.com/pat-laugh/gitignore-modifier/master/gitignore.py'
-version = [1, 6, 0, 'dev', 0]
+version = [1, 6, 0, 'dev', 1]
 version_line = 8
 
 import sys, os, re
@@ -62,12 +62,12 @@ def print_options():
 	print('    remove      Removes templates from the .gitignore file')
 	print('    update      Updates each template in the .gitignore file')
 	print('    clear       Removes all templates from the .gitignore file')
-	print('    ------------------------------------------------------------------------')
-	print('    local       Local has the following suboptions:')
-	print_local_suboptions()
-	print('    ------------------------------------------------------------------------')
+	print('    local       --> Type "local help" for suboptions')
 	print('    list        Prints a sorted list of all templates in the .gitignore file')
 	print('    self-update Updates this program')
+	print('    dict        Prints a dictionary of template names and paths')
+	print('    help        Prints this information')
+	print('    version     Prints the current version')
 
 def main(argc, argv):
 	check_modifiers(argv)
@@ -350,12 +350,15 @@ class OptionLocal:
 	RESET = 3
 	SHOW = 4
 	CALL = 5
+	HELP = 6
 
 options_local = {
 	'set': OptionLocal.SET,
 	'reset': OptionLocal.RESET,
 	'show': OptionLocal.SHOW,
 	'call': OptionLocal.CALL,
+	'help': OptionLocal.HELP,
+	'--help': OptionLocal.HELP,
 }
 
 def print_local_suboptions():
@@ -363,6 +366,7 @@ def print_local_suboptions():
 	print('      reset     Resets the local directory to None')
 	print('      show      Shows the local path')
 	print('      call      Calls a command in the local directory')
+	print('      help      Prints this information')
 	
 def option_local(argc, argv):
 	option = get_option_local(argc, argv)
@@ -383,6 +387,10 @@ def option_local(argc, argv):
 		option_local_show(argc, argv)
 	elif option == OptionLocal.CALL:
 		option_local_call(argc, argv)
+	elif option == OptionLocal.HELP:
+		print('Suboptions are:')
+		print_local_suboptions()
+		sys.exit(1)
 
 def get_option_local(argc, argv):
 	if argc <= 2:
