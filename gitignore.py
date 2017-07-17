@@ -6,7 +6,7 @@ local_path = None
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 self_path = 'https://raw.githubusercontent.com/pat-laugh/gitignore-modifier/master/gitignore.py'
-version = [1, 5, 0, 'prod']
+version = [1, 5, 1, 'dev', 0]
 version_line = 8
 
 import sys, os, re
@@ -16,6 +16,9 @@ if py_v3:
 	import urllib.request
 else:
 	import urllib2
+
+def printerr(s):
+	sys.stderr.write(s + os.linesep)
 
 name_gitignore = '.gitignore'
 junk_lines = []
@@ -62,12 +65,12 @@ def main(argc, argv):
 	check_modifiers(argv)
 	option = get_option(argc, argv)
 	if option == Option.NONE:
-		print('Error: no argument provided.')
+		printerr('Error: no argument provided.')
 		print('Options are:')
 		print_options()
 		sys.exit(1)
 	elif option == Option.UNKNOWN:
-		print('Error: unknown option "%s".' % argv[1])
+		printerr('Error: unknown option "%s".' % argv[1])
 		print_similar_names(argv[1].lower(), options.keys())
 		sys.exit(1)
 	elif option == Option.LOCAL:
@@ -168,12 +171,12 @@ def parse_file(filename):
 					errors.append(name)
 	if len(errors) > 0:
 		if len(errors) == 1:
-			print('There was an error while parsing the %s file.' % name_gitignore)
+			printerr('There was an error while parsing the %s file.' % name_gitignore)
 			error_unknown_gitignore(errors[0])
-			sys.exit(1)
-		print('There were multiple errors while parsing the %s file.' % name_gitignore)
-		for n in errors:
-			error_unknown_gitignore(n)
+		else:
+			printerr('There were multiple errors while parsing the %s file.' % name_gitignore)
+			for n in errors:
+				error_unknown_gitignore(n)
 		sys.exit(1)
 	if len(junk_lines) > 0:
 		last_line = junk_lines[-1]
@@ -190,7 +193,7 @@ def parse_gitignore(f, name):
 		else:
 			gitignores.update({name.lower(): gitignore_lines})
 			return
-	print('There was an error while parsing the %s file.' % name_gitignore)
+	printerr('There was an error while parsing the %s file.' % name_gitignore)
 	sys.exit('Error: the start tag for "%s" is not matched by a corresponding end tag.' % name)
 
 def get_gitignore_tag(tag, name):
@@ -222,14 +225,15 @@ def get_similar_names(name, list_names):
 def print_similar_names(name, list_names):
 	similar_names = get_similar_names(name, list_names)
 	if len(similar_names) > 1:
-		print('Did you mean one of these?')
-		for n in similar_names: print('\t' + n)
+		printerr('Did you mean one of these?')
+		for n in similar_names:
+			printerr('\t' + n)
 	elif len(similar_names) == 1:
-		print('Did you mean this?')
-		print('\t' + similar_names[0])
+		printerr('Did you mean this?')
+		printerr('\t' + similar_names[0])
 
 def error_unknown_gitignore(name):
-	print('Error: unknown gitignore "%s"' % name)
+	printerr('Error: unknown gitignore "%s"' % name)
 	print_similar_names(name, names.keys())
 
 def add(name):
@@ -292,7 +296,7 @@ def remove(name):
 		gitignores.pop(lower)
 		print('%s removed' % name)
 	except KeyError:
-		print('Error: %s not in file.' % name)
+		printerr('Error: %s not in file.' % name)
 
 def option_update(argc, argv):
 	if argc != 2:
@@ -338,12 +342,12 @@ def print_local_suboptions():
 def option_local(argc, argv):
 	option = get_option_local(argc, argv)
 	if option == OptionLocal.NONE:
-		print('Error: no %s suboption provided.' % argv[1])
+		printerr('Error: no %s suboption provided.' % argv[1])
 		print('Suboptions are:')
 		print_local_suboptions()
 		sys.exit(1)
 	elif option == OptionLocal.UNKNOWN:
-		print('Error: unknown %s suboption "%s".' % (argv[1], argv[2]))
+		printerr('Error: unknown %s suboption "%s".' % (argv[1], argv[2]))
 		print_similar_names(argv[2].lower(), options_local.keys())
 		sys.exit(1)
 	elif option == OptionLocal.SET:
@@ -526,13 +530,13 @@ if __name__ == '__main__':
 		try:
 			main(len(sys.argv), sys.argv)
 		except urllib.error.URLError:
-			print('%s -- %s.' % (msg_error, msg_error_url))
+			printerr('%s -- %s.' % (msg_error, msg_error_url))
 		except PermissionError:
-			print('Error: permission denied -- %s.' % msg_error_permission)
+			printerr('Error: permission denied -- %s.' % msg_error_permission)
 	else:
 		try:
 			main(len(sys.argv), sys.argv)
 		except urllib2.URLError:
-			print('%s -- %s.' % (msg_error, msg_error_url))
+			printerr('%s -- %s.' % (msg_error, msg_error_url))
 		except IOError:
-			print('%s -- %s.' % (msg_error, msg_error_permission))
+			printerr('%s -- %s.' % (msg_error, msg_error_permission))
