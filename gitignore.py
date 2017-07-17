@@ -6,10 +6,10 @@ local_path = None
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 self_path = 'https://raw.githubusercontent.com/pat-laugh/gitignore-modifier/master/gitignore.py'
-version = [1, 6, 0, 'dev', 1]
+version = [1, 6, 0, 'prod']
 version_line = 8
 
-import sys, os, re
+import sys, os, re, ast
 from subprocess import call
 py_v3 = sys.version_info[0] == 3
 if py_v3:
@@ -70,6 +70,7 @@ def print_options():
 	print('    version     Prints the current version')
 
 def main(argc, argv):
+	check_expand_list(argv)
 	check_modifiers(argv)
 	option = get_option(argv)
 	if option == Option.NONE:
@@ -125,6 +126,19 @@ def main(argc, argv):
 		option_list(argv)
 		sys.exit(0)
 	write_file(name_gitignore)
+
+def check_expand_list(argv):
+	for param in argv:
+		if (param[0] == '[' and param[-1] == ']'):
+			index = argv.index(param)
+			try:
+				l = ast.literal_eval(param)
+			except ValueError:
+				sys.exit('Error: could not evaluate "%s"' % param)
+			argv.pop(index)
+			for item in l:
+				argv.insert(index, item)
+				index += 1
 
 def check_modifiers(argv):
 	if ('-f' in argv):
