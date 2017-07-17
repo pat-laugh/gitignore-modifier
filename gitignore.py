@@ -6,7 +6,7 @@ local_path = None
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 self_path = 'https://raw.githubusercontent.com/pat-laugh/gitignore-modifier/master/gitignore.py'
-version = [1, 5, 1, 'dev', 0]
+version = [1, 5, 1, 'dev', 1]
 version_line = 8
 
 import sys, os, re
@@ -63,7 +63,7 @@ def print_options():
 
 def main(argc, argv):
 	check_modifiers(argv)
-	option = get_option(argc, argv)
+	option = get_option(argv)
 	if option == Option.NONE:
 		printerr('Error: no argument provided.')
 		print('Options are:')
@@ -87,19 +87,19 @@ def main(argc, argv):
 		sys.exit('Error: no %s file found.' % name_gitignore)
 	
 	if option == Option.ADD:
-		option_add(argc, argv)
+		option_add(argv)
 	elif option == Option.CREATE:
-		if argc == 2:
+		if len(argv) == 2:
 			sys.exit(0)
-		option_add(argc, argv)
+		option_add(argv)
 	elif option == Option.REMOVE:
-		option_remove(argc, argv)
+		option_remove(argv)
 	elif option == Option.UPDATE:
-		option_update(argc, argv)
+		option_update(argv)
 	elif option == Option.CLEAR:
-		option_clear(argc, argv)
+		option_clear(argv)
 	elif option == Option.LIST:
-		option_list(argc, argv)
+		option_list(argv)
 		sys.exit(0)
 	write_file(name_gitignore)
 
@@ -114,12 +114,14 @@ def modifier_file(argv, index):
 	index_filename = index + 1;
 	if (index_filename >= len(argv)):
 		sys.exit('Error: a filename must be provided for modifier -f or --file.')
+	if (len(argv) <= 3):
+		sys.exit('Error: modifier %s must be used with an option' % argv[index])
 	name_gitignore = argv[index_filename]
 	argv.pop(index_filename)
 	argv.pop(index)
 
-def get_option(argc, argv):
-	if argc <= 1:
+def get_option(argv):
+	if len(argv) <= 1:
 		return Option.NONE
 	return options.get(argv[1].lower(), Option.UNKNOWN)
 
@@ -141,14 +143,14 @@ def create_file():
 def exit_invalid_arguments(option_name):
 	sys.exit('Error: invalid arguments for "%s".' % option_name)
 
-def option_add(argc, argv):
-	if argc < 3:
+def option_add(argv):
+	if len(argv) < 3:
 		exit_invalid_arguments(argv[1])
 	for name in argv[2:]:
 		add(name)
 
-def option_remove(argc, argv):
-	if argc < 3:
+def option_remove(argv):
+	if len(argv) < 3:
 		exit_invalid_arguments(argv[1])
 	for name in argv[2:]:
 		remove(name)
@@ -298,20 +300,20 @@ def remove(name):
 	except KeyError:
 		printerr('Error: %s not in file.' % name)
 
-def option_update(argc, argv):
-	if argc != 2:
+def option_update(argv):
+	if len(argv) != 2:
 		exit_invalid_arguments(argv[1])
 	for name in gitignores.keys():
 		update_gitignores(name)
 
-def option_clear(argc, argv):
-	if argc != 2:
+def option_clear(argv):
+	if len(argv) != 2:
 		exit_invalid_arguments(argv[1])
 	gitignores.clear()
 	print('File cleared.')
 
-def option_list(argc, argv):
-	if argc != 2:
+def option_list(argv):
+	if len(argv) != 2:
 		exit_invalid_arguments(argv[1])
 	l = list(gitignores.keys())
 	l.sort()
