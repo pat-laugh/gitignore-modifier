@@ -6,7 +6,7 @@ local_path = None
 local_path_line = 4 # for local set and reset, 0-based index
 online_path = 'https://raw.githubusercontent.com/github/gitignore/master/'
 self_path = 'https://raw.githubusercontent.com/pat-laugh/gitignore-modifier/master/gitignore.py'
-version = [1, 5, 1, 'dev', 1]
+version = [1, 6, 0, 'dev', 0]
 version_line = 8
 
 import sys, os, re
@@ -36,6 +36,9 @@ class Option:
 	LOCAL = 7
 	LIST = 8
 	SELF_UPDATE = 9
+	DICT = 10
+	HELP = 11
+	VERSION = 12
 
 options = {
 	'add': Option.ADD,
@@ -46,6 +49,11 @@ options = {
 	'local': Option.LOCAL,
 	'list': Option.LIST,
 	'self-update': Option.SELF_UPDATE,
+	'dict': Option.DICT,
+	'help': Option.HELP,
+	'--help': Option.HELP,
+	'version': Option.VERSION,
+	'--version': Option.VERSION,
 }
 
 def print_options():
@@ -78,6 +86,21 @@ def main(argc, argv):
 		sys.exit(0)
 	elif option == Option.SELF_UPDATE:
 		option_self_update(argc, argv)
+		sys.exit(0)
+	elif option == Option.HELP:
+		print('Options are:')
+		print_options()
+		sys.exit(0)
+	elif option == Option.VERSION:
+		if len(version) <= 3 or version[3] == 'prod':
+			print('%d.%d.%d' % (version[0], version[1], version[2]))
+		else:
+			print('%d.%d.%d-%s-%d' % (version[0], version[1], version[2], version[3], version[4] if len(version) >= 5 else 0))
+		sys.exit(0)
+	elif option == Option.DICT:
+		if local_path is not None:
+			set_names_local(local_path)
+		print(names)
 		sys.exit(0)
 	
 	if local_path is not None:
