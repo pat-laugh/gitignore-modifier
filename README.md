@@ -60,6 +60,9 @@ On Mac, there may be an error using urllib. To fix it, you can call
 - Local
 - List
 - Self-update
+- Dict
+- Help
+- Version
 - -f --file
 
 ### Add
@@ -150,6 +153,29 @@ Updates the program by overwriting it with the document fetched from here. The l
 path is not affected by this.
 
     self-update
+
+### Dict
+
+Prints a dictionary of the key-values of all available template names and their
+case-sensitive path. This is not useful for regular use. It's really a utility
+option to be used by other scripts.
+
+	dict
+
+### Help
+
+Prints all the available options. `--help` can also be used. This is very much
+equivalent to typing no option at all.
+
+	help
+	--help
+
+### Version
+
+Prints the current version. `--version` can also be used.
+
+	version
+	--version
 
 ### -f --file
 
