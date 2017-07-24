@@ -192,6 +192,11 @@ single line "`C++.gitignore`". This tells the parser to fetch the C++ gitignore.
 can be multiple links, and they can be put on anywhere within the file, but they must be
 the only thing in a line. Putting them in a comment (adding '#' before them) is allowed.
 
+## Parameter lists
+
+You can call the program using Python lists as parameters. For instance,
+`gitignore.py create "['c++', 'java']"` is equivalent to `gitignore.py create c++ java`.
+
 ## Examples
 
 Type `gitignore.py create eclipse java` to create a .gitiginore file with templates for
