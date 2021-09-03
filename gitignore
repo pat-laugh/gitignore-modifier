@@ -2,117 +2,207 @@
 # Copyright Patrick Laughrea
 # Licensed under the Apache License, Version 2.0
 
-import getopt, os, subprocess, sys
+import getopt, json, os, re, subprocess, sys
+from datetime import datetime as dt
+
+FILE_CONFIG = os.path.join(os.environ['HOME'], '.gitignore-modifier')
+
+TAG_NAME_START = 'start'
+TAG_NAME_END = 'end'
+
+def get_gitignore_tag(tag, name):
+	return '##gitignore-%s:%s\n' % (tag, name)
+
+def get_re_gitignore(tag):
+	return re.compile(r'^\s*#+\s*gitignore-%s:([!-.0-~]+(/|\\))*([!-.0-~]+)\s*$' % tag)
+
+RE_START = get_re_gitignore(TAG_NAME_START)
+RE_END = get_re_gitignore(TAG_NAME_END)
+
+class BackEnd:
+	def __init__(self, exec='gibo'):
+		self.exec = 'gibo'
+		self.check_last_update()
+	
+	def dump(self, name):
+		try:
+			return subprocess.check_output([self.exec, 'dump', name]).splitlines()
+		except FileNotFoundError:
+			raise Exception('exec "%s" possibly does not exist' % self.exec)
+
+	def check_last_update(self):
+		try:
+			data = json.load(open(FILE_CONFIG))
+			self.last_update = dt.utcfromtimestamp(data['last_update'])
+		except FileNotFoundError, KeyError, TypeError:
+			self.last_update = None
+		
+	def _should_update(self):
+		return self.last_update is None or (
+				(dt.now() - self.last_update).days >= 1)
+	
+	def update(self):
+		if not self._should_update():
+			return
+		try:
+			subprocess.run([self.exec, 'update'],
+					stdout=subprocess.DEVNULL,
+					stderr=subprocess.DEVNULL)
+		except FileNotFoundError:
+			raise Exception('exec "%s" possibly does not exist' % self.exec)
+		try:
+			data = json.load(open(FILE_CONFIG))
+		except FileNotFoundError:
+			data = {}
+		data['last_update'] = dt.now()
+		json.dump(open(FILE_CONFIG, 'w'), data)
+
+class Template:
+	be = BackEnd()
+
+	def __init__(self, name, content=None):
+		self.name = name
+		self.content = content
+
+	def update(self, name):
+		self.be.update()
+		self.content = self.be.dump(name)
 
 class Gitignore:
 	def __init__(self, file_path='.gitignore'):
 		self.file_path = file_path
-		self.templates = set()
+		self.templates = {}
 		self.content = []
+
+	def _parse_gitignore(self, i, lines, name):
+		gitignore_lines = []
+		while i < len(lines):
+			line = lines[i]
+			m = RE_END.match(line)
+			if m is None or m.group(3) != name:
+				gitignore_lines.append(line)
+			else:
+				return gitignore_lines
+			i += 1
+		raise Exception('the start tag for "%s" is not matched by a corresponding end tag' % name)
 	
 	def read(self):
 		try:
 			with open(f.file_path) as f:
-				
-		self.read()
-	def save(self):
-		pass
+				lines = f.read().splitlines()
+		except FileNotFoundError:
+			return
+		for i, line in enumerate(lines):
+			m = RE_START.match(line)
+			if m is None:
+				self.content.append(line)
+				continue
+			name = m.group(3)
+			gitignore_lines = self._parse_gitignore(i, lines, name)
+			if name in self.templates:
+				continue # ignore
+			tmpl = Template(name, gitignore_lines)
+			self.content.append(tmpl)
+			self.templates[name] = tmpl
+	
+	def write(self):
+		lines = []
+
+		def _add_tmpl(tmpl, lines):
+			lines.append(get_gitignore_tag(TAG_NAME_START, tmpl.name))
+			lines += tmpl.content
+			lines.append(get_gitignore_tag(TAG_NAME_END, tmpl.name))
+
+		tmpls_to_add = set(self.templates)
+		for line in self.content:
+			if type(line) is not Template:
+				lines.append(line)
+				continue
+			tmpl = line
+			_add_tmpl(tmpl, lines)
+			tmpls_to_add.remove(tmpl.name)
+		for name in tmpls_to_add:
+			tmpl = self.templates[name]
+			_add_tmpl(tmpl, lines)
+		with open(f.file_path, 'w') as f:
+			f.write('\n'.join(lines))
+
+	def clear(self):
+		self.remove(self.templates)
+	def remove(self, names):
+		i = 0
+		not_removed = set(names)
+		while i < len(self.content):
+			line = self.content[i]
+			if type(line) is not Template or line.name not in names:
+				i += 1
+				continue
+			del self.content[i]
+			try:
+				del self.templates[line.name]
+				not_removed.remove(line.name)
+			except KeyError:
+				pass
+		if len(not_removed) > 0:
+			raise Exception('templates not in file: ' + ', '.join(not_removed))
+	def update(self, names):
+		for name in names:
+			try:
+				self.templates[name].update()
+			except KeyError:
+				raise Exception('template "%s" not in file' % name)
+	def add(self, names):
+		for name in names:
+			if name in self.templates:
+				self.update([name])
+				continue
+			self._add(name)
+	def _add(self, name):
+		tmpl = Template(name)
+		tmpl.update()
+		self.templates[name] = tmpl
 
 if __name__ == '__main__':
+	APP_NAME = os.path.basename(sys.argv[0])
 	USAGE = '''\
 Usage: %s <command>
 
 Commands:
     add [<name>...]    create .gitignore if needed, and add templates
     clear              remove all templates
-    help               display the usage text
+    help               display this text
     list               list templates in .gitignore
     remove <name>...   remove templates
     update [<name>...] update all or specified templates to latest version\
-'''
-	APP_NAME = os.path.basename(sys.argv[0])
+''' % APP_NAME
 
 	try:
 		if len(sys.argv) <= 1:
-			raise Exception('no argument provided')
+			print(USAGE)
+			sys.exit(2)
 		arg, params = sys.argv[1], sys.argv[2:]
 		if arg == 'help':
 			print(USAGE)
 			sys.exit()
 		g = Gitignore()
 		g.read()
-		if arg == 'add':
-			g.add(params)
-		elif arg == 'clear':
+		if arg == 'clear':
 			g.clear()
 		elif arg == 'list':
 			items = list(g.templates())
-			items.sort(key=lambda x: x.name)
-			for item in items:
+			for item in sorted(items):
 				print(item)
 			sys.exit()
 		elif arg == 'remove':
 			g.remove(params)
+		elif arg == 'add':
+			g.add(params)
 		elif arg == 'update':
-			g.update()
+			g.update(params)
 		else:
 			raise Exception('unkown argument "%s"' % arg)
-		g.save()
+		g.write()
 	except (Exception, getopt.GetoptError) as e:
 		print('%s: %s' % (APP_NAME, e),  file=sys.stderr)
-		sys.exit(USAGE)
-
-def get_re_gitignore(tag):
-	return re.compile(r'^\s*#+\s*gitignore-%s:([!-.0-~]+(/|\\))*([!-.0-~]+)\s*$' % tag)
-
-re_start = get_re_gitignore('start')
-def parse_file(filename):
-	errors = []
-	with open(filename, 'r') as f:
-		for line in f:
-			m = re_start.match(line)
-			if m is None:
-				junk_lines.append(line)
-			else:
-				name = m.group(3)
-				parse_gitignore(f, name)
-				if name.lower() not in names:
-					errors.append(name)
-	if len(errors) > 0:
-		if len(errors) == 1:
-			printerr('There was an error while parsing the %s file.' % name_gitignore)
-			error_unknown_gitignore(errors[0])
-		else:
-			printerr('There were multiple errors while parsing the %s file.' % name_gitignore)
-			for n in errors:
-				error_unknown_gitignore(n)
-		sys.exit(1)
-	if len(junk_lines) > 0:
-		last_line = junk_lines[-1]
-		if last_line[-1] != '\n':
-			junk_lines[-1] = last_line + os.linesep
-
-re_end = get_re_gitignore('end')
-def parse_gitignore(f, name):
-	gitignore_lines = []
-	for line in f:
-		m = re_end.match(line)
-		if m is None or m.group(3) != name:
-			gitignore_lines.append(line)
-		else:
-			gitignores.update({name.lower(): gitignore_lines})
-			return
-	printerr('There was an error while parsing the %s file.' % name_gitignore)
-	sys.exit('Error: the start tag for "%s" is not matched by a corresponding end tag.' % name)
-
-def get_gitignore_tag(tag, name):
-	return '##gitignore-%s:%s\n' % (tag, name)
-
-def write_file(filename):
-	f = open(filename, 'w')
-	f.writelines(junk_lines)
-	for name, lines in gitignores.items():
-		f.write(get_gitignore_tag('start', name))
-		f.writelines(lines)
-		f.write(get_gitignore_tag('end', name))
-	f.close()
+		print(USAGE)
+		sys.exit(2)
