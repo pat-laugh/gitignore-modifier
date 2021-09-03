@@ -16,7 +16,7 @@ gitignore add python
 
 This is written in Python 3.5. It also uses
 https://github.com/simonwhitaker/gibo as a back end. Make sure to have the
-required Python version and the gibo executable on the PATH (like in `~/bin/`).
+required Python version and the `gibo` executable on the PATH (like in `~/bin/`).
 
 You can then also put this project's executable on the PATH.
 
@@ -43,7 +43,7 @@ appropriately.
 The lines of `.gitignore` are kept in place as much as possible to avoid
 unncessary diff lines when changing it.
 
-## Gitignore links (do I want to do this?)
+## Gitignore links
 
 Adding the name of a gitignore template within another template will make the
 parser automatically fetch that template. For example, the template for Fortran
