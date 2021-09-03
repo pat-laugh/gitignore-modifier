@@ -40,6 +40,9 @@ To get the content of templates, the script calls
 [gibo](https://github.com/simonwhitaker/gibo) and parses its output
 appropriately.
 
+The lines of `.gitignore` are kept in place as much as possible to avoid
+unncessary diff lines when changing it.
+
 ## Gitignore links (do I want to do this?)
 
 Adding the name of a gitignore template within another template will make the
