@@ -13,8 +13,9 @@ TAG_NAME_END = 'end'
 def get_gitignore_tag(tag, name):
 	return '##gitignore-%s:%s\n' % (tag, name)
 
+RE_NAME_TEMPLATE_STR = r'([!-.0-~]+(/|\\))*([!-.0-~]+)'
 def get_re_gitignore(tag):
-	return re.compile(r'^\s*#+\s*gitignore-%s:([!-.0-~]+(/|\\))*([!-.0-~]+)\s*$' % tag)
+	return re.compile(r'^\s*#+\s*gitignore-%s:%s\s*$' % (tag, RE_NAME_TEMPLATE_STR))
 
 RE_START = get_re_gitignore(TAG_NAME_START)
 RE_END = get_re_gitignore(TAG_NAME_END)
@@ -64,9 +65,21 @@ class Template:
 		self.name = name
 		self.content = content
 
+	def _get_content(self, name)
+		lines = self.be.dump(name)
+		all_lines = []
+		for line in lines:
+			# expand gitignore links
+			m = re.match(line, r'^%s.gitignore$' % RE_NAME_TEMPLATE_STR)
+			if m is None:
+				all_lines.append(line)
+			else:
+				all_lines += self._get_content(m.group(3))
+		return all_lines
+
 	def update(self, name):
 		self.be.update()
-		self.content = self.be.dump(name)
+		self.content = self._get_content(name)
 
 class Gitignore:
 	def __init__(self, file_path='.gitignore'):
