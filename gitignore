@@ -22,30 +22,17 @@ RE_END = get_re_gitignore(TAG_NAME_END)
 RE_GITIGNORE_LINK = re.compile(r'^%s.gitignore$' % RE_NAME_TEMPLATE_STR)
 
 class BackEnd:
+	KEY_LAST_UPDATE = 'last_update'
+
 	def __init__(self, exec='gibo'):
 		self.exec = 'gibo'
-		self.check_last_update()
-	
-	def dump(self, name):
-		try:
-			return subprocess.check_output(
-					[self.exec, 'dump', name],
-					stderr=subprocess.DEVNULL,
-					universal_newlines=True).splitlines()
-		except FileNotFoundError:
-			raise Exception('exec "%s" possibly does not exist' % self.exec)
-		except subprocess.CalledProcessError:
-			items = {x.lower(): x for x in subprocess.check_output(
-				[self.exec, 'list'],
-				universal_newlines=True).splitlines()}
-			possible_matches = difflib.get_close_matches(name.lower(), items, 10, 0.6)
-			possible_matches = [items[x] for x in possible_matches]
-			raise Exception('no template "%s" found; maybe you meant one of these? %s' % (name, ', '.join(possible_matches)))
+		self._check_last_update()
+		self._list = None
 
-	def check_last_update(self):
+	def _check_last_update(self):
 		try:
 			data = json.load(open(FILE_CONFIG))
-			self.last_update = dt.utcfromtimestamp(data['last_update'])
+			self.last_update = dt.utcfromtimestamp(data[BackEnd.KEY_LAST_UPDATE])
 		except (FileNotFoundError, KeyError, TypeError, json.decoder.JSONDecodeError):
 			self.last_update = None
 		
@@ -53,7 +40,7 @@ class BackEnd:
 		return self.last_update is None or (
 				(dt.utcnow() - self.last_update).days >= 1)
 	
-	def update(self, force=False):
+	def _check_update(self, force=False):
 		if not force and not self._should_update():
 			return
 		try:
@@ -68,8 +55,39 @@ class BackEnd:
 		except (FileNotFoundError, json.decoder.JSONDecodeError):
 			data = {}
 		self.last_update = dt.utcnow()
-		data['last_update'] = self.last_update.timestamp()
+		data[BackEnd.KEY_LAST_UPDATE] = self.last_update.timestamp()
 		json.dump(data, open(FILE_CONFIG, 'w'))
+	
+	def dump(self, name):
+		self._check_update()
+		try:
+			return subprocess.check_output(
+					[self.exec, 'dump', name],
+					stderr=subprocess.DEVNULL,
+					universal_newlines=True).splitlines()
+		except FileNotFoundError:
+			raise Exception('exec "%s" possibly does not exist' % self.exec)
+		except subprocess.CalledProcessError:
+			items = self.list()
+			possible_matches = difflib.get_close_matches(name.lower(), items, 10, 0.6)
+			possible_matches = [items[x] for x in possible_matches]
+			raise Exception('no template "%s" found; maybe you meant one of these? %s' % (name, ', '.join(possible_matches)))
+	
+	def list(self):
+		if self._list is not None:
+			return self._list
+		self._check_update()
+		try:
+			items = {x.lower(): x for x in subprocess.check_output(
+					[self.exec, 'list'],
+					universal_newlines=True).splitlines()}
+			self._list = items
+			return items
+		except FileNotFoundError:
+			raise Exception('exec "%s" possibly does not exist' % self.exec)
+
+	def update(self, force=False):
+		self._check_update(force)
 
 gibo_back_end = BackEnd()
 
@@ -106,7 +124,7 @@ class Gitignore:
 			line = lines[i]
 			i += 1
 			m = RE_END.match(line)
-			if m is None or m.group(3) != name:
+			if m is None or m.group(3).lower() != name:
 				gitignore_lines.append(line)
 			else:
 				return i, gitignore_lines
@@ -126,7 +144,7 @@ class Gitignore:
 			if m is None:
 				self.content.append(line)
 				continue
-			name = m.group(3)
+			name = m.group(3).lower()
 			i, gitignore_lines = self._parse_gitignore(i, lines, name)
 			if name in self.templates:
 				continue # ignore
@@ -136,11 +154,12 @@ class Gitignore:
 	
 	def write(self):
 		lines = []
+		names_dict = gibo_back_end.list()
 
 		def _add_tmpl(tmpl, lines):
-			lines.append(get_gitignore_tag(TAG_NAME_START, tmpl.name))
+			lines.append(get_gitignore_tag(TAG_NAME_START, names_dict[tmpl.name]))
 			lines += tmpl.content
-			lines.append(get_gitignore_tag(TAG_NAME_END, tmpl.name))
+			lines.append(get_gitignore_tag(TAG_NAME_END, names_dict[tmpl.name]))
 
 		tmpls_to_add = set(self.templates)
 		for line in self.content:
@@ -159,6 +178,7 @@ class Gitignore:
 	def clear(self):
 		self.remove(self.templates)
 	def remove(self, names):
+		names = [x.lower() for x in names]
 		i = 0
 		not_removed = set(names)
 		while i < len(self.content):
@@ -173,15 +193,20 @@ class Gitignore:
 			except KeyError:
 				pass
 		if len(not_removed) > 0:
-			raise Exception('templates not in file: ' + ', '.join(not_removed))
+			names_dict = gibo_back_end.list()
+			raise Exception('templates not in file: ' + ', '.join(
+					[names_dict[x] for x in not_removed]))
 	def update(self, names):
+		names = [x.lower() for x in names]
 		gibo_back_end.update(True)
 		for name in names:
 			try:
 				self.templates[name].update()
 			except KeyError:
-				raise Exception('template "%s" not in file' % name)
+				names_dict = gibo_back_end.list()
+				raise Exception('template "%s" not in file' % names_dict[name])
 	def add(self, names):
+		names = [x.lower() for x in names]
 		for name in names:
 			if name in self.templates:
 				self.templates[name].update()
@@ -219,16 +244,17 @@ Commands:
 		if arg == 'clear':
 			g.clear()
 		elif arg == 'list':
+			names_dict = gibo_back_end.list()
 			if len(params) == 1 and params[0] == '-a':
 				for line in g.content:
 					if type(line) is Template:
-						print('Template: ' + line.name)
+						print('Template: ' + names_dict[line.name])
 					else:
 						print(line)
 			else:
 				items = list(g.templates)
 				for item in sorted(items):
-					print(item)
+					print(names_dict[item])
 			sys.exit()
 		elif arg == 'remove':
 			if len(params) == 0:
