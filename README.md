@@ -14,18 +14,21 @@ gitignore add python
 
 ## Installation
 
-This is written in Python 3.5. It also uses
-https://github.com/simonwhitaker/gibo as a back end. Make sure to have the
-required Python version and the `gibo` executable on the PATH (like in `~/bin/`).
+This was tested using Python 3.7 (but probably compatible with previous
+versions). It also uses https://github.com/simonwhitaker/gibo as a back end.
+Make sure to have the required Python version and the `gibo` executable on the
+PATH (like in `~/bin/`).
 
-You can then also put this project's executable on the PATH.
+You can then also put this project's executable on the PATH, and source the Bash
+completion file (doing something like putting
+`. gitignore-modifier/bash-completion/gitignore` in `~/.bashrc`).
 
 ## Usage
 
 -	`add [<name>...]`: create `.gitignore` if needed, and add templates
 -	`clear`: remove all templates
 -	`help`: display the usage text
--	`list`: list templates in `.gitignore`
+-	`list [-a]`: list templates in `.gitignore`; `-a` to include other lines
 -	`remove <name>...`: remove templates
 -	`update [<name>...]`: update all or specified templates to latest version
 
@@ -49,8 +52,7 @@ Adding the name of a gitignore template within another template will make the
 parser automatically fetch that template. For example, the template for Fortran
 consists of a single line "`C++.gitignore`". This tells the parser to fetch the
 C++ gitignore. There can be multiple links, and they can be put on anywhere
-within the file, but they must be the only thing in a line. Putting them in a
-comment (adding '#' before them) is allowed.
+within the file, but they must be the only thing in a line.
 
 ## Caveats
 
