@@ -1,0 +1,27 @@
+_gitignore()
+{
+	local cur prev opts
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	second="${COMP_WORDS[1]}"
+	
+	if [[ $COMP_CWORD -eq 1 ]]; then
+		opts="add clear help list remove update"
+	else
+		case "$second" in
+			add)
+				opts=`gibo list | grep -Ei "^$cur" | sed s/^$cur/$cur/i`
+			;;
+			list)
+				opts='-a'
+			;;
+			remove|update)
+				opts=`gitignore list | grep -Ei "^$cur" | sed s/^$cur/$cur/i`
+			;;
+		esac
+	fi
+
+	COMPREPLY=($(compgen -W "$opts" -- $cur))
+	return 0
+}
+complete -F _gitignore gitignore
