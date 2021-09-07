@@ -21,6 +21,9 @@ RE_START = get_re_gitignore(TAG_NAME_START)
 RE_END = get_re_gitignore(TAG_NAME_END)
 RE_GITIGNORE_LINK = re.compile(r'^%s.gitignore$' % RE_NAME_TEMPLATE_STR)
 
+class TemplateNameError(Exception):
+	pass
+
 class BackEnd:
 	KEY_LAST_UPDATE = 'last_update'
 
@@ -71,7 +74,11 @@ class BackEnd:
 			items = self.list()
 			possible_matches = difflib.get_close_matches(name.lower(), items, 10, 0.6)
 			possible_matches = [items[x] for x in possible_matches]
-			raise Exception('no template "%s" found; maybe you meant one of these? %s' % (name, ', '.join(possible_matches)))
+			msg = 'no template "%s" found.' % name
+			if len(possible_matches) > 0:
+				raise TemplateNameError('%s Maybe you meant: %s' % (msg, ', '.join(possible_matches)))
+			else:
+				raise TemplateNameError(msg)
 	
 	def list(self):
 		if self._list is not None:
@@ -117,6 +124,10 @@ class Gitignore:
 		self.file_path = file_path
 		self.templates = {}
 		self.content = []
+		self.msgs = []
+	
+	def add_msg(self, id, msg):
+		self.msgs.append((id, msg))
 
 	def _parse_gitignore(self, i, lines, name):
 		gitignore_lines = []
@@ -192,26 +203,38 @@ class Gitignore:
 				not_removed.remove(line.name)
 			except KeyError:
 				pass
+			else:
+				self.add_msg(1, '%s removed' % line.name)
 		if len(not_removed) > 0:
 			names_dict = gibo_back_end.list()
-			raise Exception('templates not in file: ' + ', '.join(
+			self.add_msg(2, 'templates not in file: ' + ', '.join(
 					[names_dict[x] for x in not_removed]))
 	def update(self, names):
 		names = [x.lower() for x in names]
 		gibo_back_end.update(True)
+		names_dict = gibo_back_end.list()
 		for name in names:
 			try:
 				self.templates[name].update()
 			except KeyError:
-				names_dict = gibo_back_end.list()
-				raise Exception('template "%s" not in file' % names_dict[name])
+				self.add_msg(2, 'template "%s" not in file' % names_dict[name])
+			except TemplateNameError as e:
+				self.add_msg(2, ''.join(e.args))
+			else:
+				self.add_msg(1, '%s updated' % names_dict[name])
 	def add(self, names):
 		names = [x.lower() for x in names]
+		names_dict = gibo_back_end.list()
 		for name in names:
 			if name in self.templates:
 				self.templates[name].update()
 				continue
-			self._add(name)
+			try:
+				self._add(name)
+			except TemplateNameError as e:
+				self.add_msg(2, ''.join(e.args))
+			else:
+				self.add_msg(1, '%s added' % names_dict[name])
 	def _add(self, name):
 		tmpl = Template(name)
 		tmpl.update()
@@ -230,6 +253,12 @@ Commands:
     remove <name>...   remove templates
     update [<name>...] update all or specified templates to latest version\
 ''' % APP_NAME
+
+	def log_msg(id, msg):
+		if id == 1:
+			print(msg)
+		else:
+			print('%s: warn: %s' % (APP_NAME, msg), file=sys.stderr)
 
 	try:
 		if len(sys.argv) <= 1:
@@ -267,10 +296,12 @@ Commands:
 		else:
 			raise Exception('unkown argument "%s"' % arg)
 		g.write()
+		for id, msg in g.msgs:
+			log_msg(id, msg)
 	except getopt.GetoptError as e:
-		print('%s: %s' % (APP_NAME, e),  file=sys.stderr)
+		print('%s: error: %s' % (APP_NAME, e),  file=sys.stderr)
 		print(USAGE)
 		sys.exit(2)
 	except Exception as e:
-		print('%s: %s' % (APP_NAME, e),  file=sys.stderr)
+		print('%s: error: %s' % (APP_NAME, e),  file=sys.stderr)
 		sys.exit(1)
